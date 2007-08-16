@@ -56,9 +56,9 @@ rm -rf %{buildroot}
 %{_bindir}/%{name}
 %{_mandir}/man1/yasm.1*
 %{_mandir}/man7/yasm_arch.7*
-%{_mandir}/man7/yasm_dbgfmts.7.bz2
-%{_mandir}/man7/yasm_objfmts.7.bz2
-%{_mandir}/man7/yasm_parsers.7.bz2
+%{_mandir}/man7/yasm_dbgfmts.7.*
+%{_mandir}/man7/yasm_objfmts.7.*
+%{_mandir}/man7/yasm_parsers.7.*
 
 %files -n %name-devel
 %defattr(-,root,root)
