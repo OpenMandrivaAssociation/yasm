@@ -6,7 +6,6 @@ Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.bz
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Yasm is a complete rewrite of the NASM assembler under the "new" BSD
