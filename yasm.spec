@@ -1,11 +1,13 @@
 Summary:	Modular Assembler
 Name:		yasm
-Version:	0.6.2
+Version:	0.7.0
 Release:	%mkrel 1
-Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.bz2
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
+Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.bz2
+BuildRequires:	xmlto
+BuildRequires:	python-pyrex
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
@@ -17,26 +19,35 @@ addition to multiple output object formats and even multiple
 instruction sets. Another primary module of the overall design is an
 optimizer module.
 
-%package -n %name-devel
+%package devel
+Summary:	Development headers and files for %{name}
 Group:		Development/C
-Summary:	Yasm modular assembler library
 Obsoletes:	%mklibname -d yasm 0
+Requires:	%{name} = %{version}-%{release}
 
-%description -n %name-devel
-Yasm is a complete rewrite of the NASM assembler under the "new" BSD
-License (some portions are under other licenses, see COPYING for
-details). It is designed from the ground up to allow for multiple
-assembler syntaxes to be supported (eg, NASM, TASM, GAS, etc.) in
-addition to multiple output object formats and even multiple
-instruction sets. Another primary module of the overall design is an
-optimizer module.
+%description devel
+Development headers and files for %{name}.
+
+%package python
+Summary:	Python bindings for %{name}
+Group:		Development/Python
+Requires:	%{name} = %{version}-%{release}
+
+%description python
+Python bindings for %{name}.
 
 %prep
 %setup -q -n %{name}-%{version}
 
 %build
+%ifnarch ix86
+export CFLAGS="%{optflags} -fPIC"
+%endif
+
 %configure2_5x \
-	--disable-rpath
+	--disable-rpath \
+	--enable-python \
+	--enable-python-bindings
 
 %make
 
@@ -60,7 +71,11 @@ rm -rf %{buildroot}
 %{_mandir}/man7/yasm_objfmts.7.*
 %{_mandir}/man7/yasm_parsers.7.*
 
-%files -n %name-devel
+%files python
+%defattr(-,root,root)
+%{py_sitedir}/*
+
+%files devel
 %defattr(-,root,root)
 %{_libdir}/lib*.a
 %{_includedir}/libyasm
