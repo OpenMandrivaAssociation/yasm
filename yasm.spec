@@ -1,7 +1,7 @@
 Summary:	Modular Assembler
 Name:		yasm
-Version:	0.7.2
-Release:	%mkrel 3
+Version:	0.8.0
+Release:	%mkrel 1
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
@@ -68,7 +68,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %doc AUTHORS
-%{_bindir}/%{name}
+%{_bindir}/*
 %{_mandir}/man1/yasm.1*
 %{_mandir}/man7/yasm_arch.7*
 %{_mandir}/man7/yasm_dbgfmts.7.*
