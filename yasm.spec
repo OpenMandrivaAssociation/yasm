@@ -8,6 +8,7 @@ Url:		http://www.tortall.net/projects/yasm/
 Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.bz2
 BuildRequires:	xmlto
 BuildRequires:	python-pyrex > 0.9.5.1
+BuildRequires:  python-cython
 %if %{mdkversion} <= 200710
 BuildRequires:	lzma
 %endif
