@@ -9,10 +9,10 @@ Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.bz
 BuildRequires:	xmlto
 BuildRequires:	python-pyrex > 0.9.5.1
 BuildRequires:  python-cython
+BuildRequires:  python-devel
 %if %{mdkversion} <= 200710
 BuildRequires:	lzma
 %endif
-%py_requires -d
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
