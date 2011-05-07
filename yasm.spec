@@ -1,7 +1,7 @@
 Summary:	Modular Assembler
 Name:		yasm
 Version:	1.1.0
-Release:	%mkrel 3
+Release:	%mkrel 4
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
