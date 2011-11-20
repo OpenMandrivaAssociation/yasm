@@ -1,13 +1,11 @@
 Summary:	Modular Assembler
 Name:		yasm
-Version:	1.1.0
-Release:	%mkrel 4
+Version:	1.2.0
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
-Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.bz2
-Patch0:		yasm-1.1.0-cython-0.14.patch
-Patch1:		yasm-1.1.0-skip_cython_check.patch
+Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.gz
 BuildRequires:	xmlto
 BuildRequires:	python-pyrex > 0.9.5.1
 BuildRequires:  python-cython
@@ -45,8 +43,6 @@ Python bindings for %{name}.
 
 %prep
 %setup -q -n %{name}-%{version}
-%patch0 -p0
-%patch1 -p0
 
 %build
 %ifnarch ix86
