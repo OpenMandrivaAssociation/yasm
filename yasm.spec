@@ -1,7 +1,7 @@
 Summary:	Modular Assembler
 Name:		yasm
 Version:	1.2.0
-Release:	%mkrel 1
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
@@ -10,10 +10,6 @@ BuildRequires:	xmlto
 BuildRequires:	python-pyrex > 0.9.5.1
 BuildRequires:  python-cython
 BuildRequires:  python-devel
-%if %{mdkversion} <= 200710
-BuildRequires:	lzma
-%endif
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Yasm is a complete rewrite of the NASM assembler under the "new" BSD
@@ -24,7 +20,7 @@ addition to multiple output object formats and even multiple
 instruction sets. Another primary module of the overall design is an
 optimizer module.
 
-%package devel
+%package	devel
 Summary:	Development headers and files for %{name}
 Group:		Development/C
 Obsoletes:	%mklibname -d yasm 0
@@ -33,22 +29,18 @@ Requires:	%{name} = %{version}-%{release}
 %description devel
 Development headers and files for %{name}.
 
-%package python
+%package	python
 Summary:	Python bindings for %{name}
 Group:		Development/Python
 Requires:	%{name} = %{version}-%{release}
 
-%description python
+%description	python
 Python bindings for %{name}.
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 
 %build
-%ifnarch ix86
-export CFLAGS="%{optflags} -fPIC"
-%endif
-
 %configure2_5x \
 	--disable-rpath \
 	--enable-python \
@@ -57,17 +49,11 @@ export CFLAGS="%{optflags} -fPIC"
 %make
 
 %install
-rm -rf  %{buildroot}
-
 %makeinstall_std
 
 rm -f %{buildroot}%{_libdir}/yasm/*.a
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root)
 %doc AUTHORS
 %{_bindir}/*
 %{_mandir}/man1/yasm.1*
@@ -77,11 +63,9 @@ rm -rf %{buildroot}
 %{_mandir}/man7/yasm_parsers.7.*
 
 %files python
-%defattr(-,root,root)
 %{py_sitedir}/*
 
 %files devel
-%defattr(-,root,root)
 %{_libdir}/lib*.a
 %{_includedir}/libyasm
 %{_includedir}/libyasm.h
