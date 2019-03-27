@@ -6,7 +6,6 @@ License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
 Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.gz
-BuildRequires:	xmlto
 BuildRequires:  python2-cython
 BuildRequires:  python2-devel
 
