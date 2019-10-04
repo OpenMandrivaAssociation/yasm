@@ -18,30 +18,29 @@ addition to multiple output object formats and even multiple
 instruction sets. Another primary module of the overall design is an
 optimizer module.
 
-%package	devel
+%package devel
 Summary:	Development headers and files for %{name}
 Group:		Development/C
 Obsoletes:	%mklibname -d yasm 0
 Requires:	%{name} = %{version}-%{release}
 
-%description	devel
+%description devel
 Development headers and files for %{name}.
 
-%package -n	python2-%{name}
+%package -n python2-%{name}
 Summary:	Python bindings for %{name}
 Group:		Development/Python
 Requires:	%{name} = %{version}-%{release}
 
-%description -n	python2-%{name}
+%description -n python2-%{name}
 Python bindings for %{name}.
 
 %prep
-%setup -q
-%apply_patches
+%autosetup -p1
 
 %build
 ln -s %{_bindir}/python2 python
-export PATH=`pwd`:$PATH
+export PATH=$(pwd):$PATH
 %ifnarch ix86
 export CFLAGS="%{optflags} -fPIC"
 %endif
@@ -51,10 +50,10 @@ export CFLAGS="%{optflags} -fPIC"
 	--enable-python \
 	--enable-python-bindings
 
-%make
+%make_build
 
 %install
-%makeinstall_std
+%make_install
 
 rm -f %{buildroot}%{_libdir}/yasm/*.a
 
