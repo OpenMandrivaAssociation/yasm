@@ -1,13 +1,13 @@
+%define _disable_rebuild_configure 1
+
 Summary:	Modular Assembler
 Name:		yasm
 Version:	1.3.0
-Release:	7
+Release:	8
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
 Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.gz
-BuildRequires:  python2-cython
-BuildRequires:  python2-devel
 
 %description
 Yasm is a complete rewrite of the NASM assembler under the "new" BSD
@@ -21,19 +21,11 @@ optimizer module.
 %package devel
 Summary:	Development headers and files for %{name}
 Group:		Development/C
-Obsoletes:	%mklibname -d yasm 0
+Obsoletes:	%{mklibname -d yasm 0} < 1.3.0-8
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
 Development headers and files for %{name}.
-
-%package -n python2-%{name}
-Summary:	Python bindings for %{name}
-Group:		Development/Python
-Requires:	%{name} = %{version}-%{release}
-
-%description -n python2-%{name}
-Python bindings for %{name}.
 
 %prep
 %autosetup -p1
@@ -47,8 +39,8 @@ export CFLAGS="%{optflags} -fPIC"
 
 %configure \
 	--disable-rpath \
-	--enable-python \
-	--enable-python-bindings
+	--disable-python \
+	--disable-python-bindings
 
 %make_build
 
@@ -65,9 +57,6 @@ rm -f %{buildroot}%{_libdir}/yasm/*.a
 %{_mandir}/man7/yasm_dbgfmts.7.*
 %{_mandir}/man7/yasm_objfmts.7.*
 %{_mandir}/man7/yasm_parsers.7.*
-
-%files -n python2-%{name}
-%{python2_sitelib}/*
 
 %files devel
 %{_libdir}/lib*.a
