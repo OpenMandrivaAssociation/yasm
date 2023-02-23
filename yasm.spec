@@ -3,7 +3,7 @@
 Summary:	Modular Assembler
 Name:		yasm
 Version:	1.3.0
-Release:	9
+Release:	10
 License:	BSD
 Group:		Development/Other
 Url:		http://www.tortall.net/projects/yasm/
@@ -35,6 +35,11 @@ ln -s %{_bindir}/python2 python
 export PATH=$(pwd):$PATH
 %ifnarch ix86
 export CFLAGS="%{optflags} -fPIC"
+%endif
+%ifarch znver1
+# Workaround for infinite hang while building virtualbox 7.0.6
+# with yasm built with znver1 flags
+export CFLAGS="-O2 -g3 -gdwarf-4 -march=znver1 -fPIC"
 %endif
 
 %configure \
