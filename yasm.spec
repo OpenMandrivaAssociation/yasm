@@ -6,7 +6,7 @@ Version:	1.3.0
 Release:	11
 License:	BSD
 Group:		Development/Other
-Url:		http://www.tortall.net/projects/yasm/
+Url:		https://www.tortall.net/projects/yasm/
 Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.gz
 
 %description
