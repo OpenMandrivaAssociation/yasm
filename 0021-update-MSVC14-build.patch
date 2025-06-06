@@ -1,0 +1,121 @@
+From 86b96b21fa84101be286ead673fe5935c2099299 Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Fri, 6 Nov 2015 11:33:14 +0000
+Subject: [PATCH 21/79] update MSVC14 build
+
+---
+ Mkfiles/vc14/genperf/genperf.vcxproj | 20 ++++++++++++++++----
+ Mkfiles/vc14/genperf/run.bat         |  1 +
+ Mkfiles/vc14/vsyasm.xml              |  6 +++---
+ 3 files changed, 20 insertions(+), 7 deletions(-)
+
+diff --git a/Mkfiles/vc14/genperf/genperf.vcxproj b/Mkfiles/vc14/genperf/genperf.vcxproj
+index 0cb39069..4ccf38a2 100644
+--- a/Mkfiles/vc14/genperf/genperf.vcxproj
++++ b/Mkfiles/vc14/genperf/genperf.vcxproj
+@@ -78,15 +78,15 @@
+     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
+-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreBuildEventUseInBuild>
+-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
+-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreBuildEventUseInBuild>
+     <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreLinkEventUseInBuild>
+     <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreLinkEventUseInBuild>
+     <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreLinkEventUseInBuild>
+     <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreLinkEventUseInBuild>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+     <ClCompile>
+       <Optimization>Disabled</Optimization>
+@@ -122,6 +122,9 @@
+     <CustomBuildStep>
+       <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
+     </CustomBuildStep>
++    <PreBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PreBuildEvent>
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+     <ClCompile>
+@@ -156,6 +159,9 @@
+     <CustomBuildStep>
+       <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
+     </CustomBuildStep>
++    <PreBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PreBuildEvent>
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+     <ClCompile>
+@@ -190,6 +196,9 @@
+     <CustomBuildStep>
+       <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
+     </CustomBuildStep>
++    <PreBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PreBuildEvent>
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+     <ClCompile>
+@@ -223,6 +232,9 @@
+     <CustomBuildStep>
+       <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
+     </CustomBuildStep>
++    <PreBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PreBuildEvent>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+     <ClCompile Include="..\..\..\tools\genperf\genperf.c" />
+diff --git a/Mkfiles/vc14/genperf/run.bat b/Mkfiles/vc14/genperf/run.bat
+index 4f655b84..c6f83543 100644
+--- a/Mkfiles/vc14/genperf/run.bat
++++ b/Mkfiles/vc14/genperf/run.bat
+@@ -23,6 +23,7 @@ echo Building with Python ...
+ set _res_=%_my_:*REG_SZ=%
+ set _end_=%_res_:*exe"=%
+ call set _python_=%%_res_:%_end_%=%%
++echo %_python_%
+ call %_python_% modules\arch\x86\gen_x86_insn.py
+ 
+ :therest
+diff --git a/Mkfiles/vc14/vsyasm.xml b/Mkfiles/vc14/vsyasm.xml
+index cd08cbba..a108f005 100644
+--- a/Mkfiles/vc14/vsyasm.xml
++++ b/Mkfiles/vc14/vsyasm.xml
+@@ -125,7 +125,7 @@
+       HelpContext="0"
+       DisplayName="Map File Name"
+       Description="Select a map output by setting its file name"
+-      Switch="--mapdir= &quot;[value]&quot;" />
++      Switch="--mapdir=&quot;[value]&quot;" />
+ 
+     <StringProperty
+       Name="ErrorFile"
+@@ -143,7 +143,7 @@
+       HelpContext="0"
+       DisplayName="External Symbol Prefix"
+       Description="Prepend symbol to all external symbols"
+-      Switch="--prefix &quot;[value]&quot;" />
++      Switch="--prefix=&quot;[value]&quot;" />
+ 
+     <StringProperty
+       Name="SymbolSuffix"
+@@ -152,7 +152,7 @@
+       HelpContext="0"
+       DisplayName="External Symbol Suffix"
+       Description="Append symbol to all external symbols"
+-      Switch="--suffix &quot;[value]&quot;" />
++      Switch="--suffix=&quot;[value]&quot;" />
+ 
+     <EnumProperty
+       Name="PreProc"
+-- 
+2.49.0
+

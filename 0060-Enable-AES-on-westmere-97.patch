@@ -1,0 +1,33 @@
+From 8a87860db7d0a3ad2c61b4411d74e5a4a738b448 Mon Sep 17 00:00:00 2001
+From: Kaz Wesley <keziahw@gmail.com>
+Date: Fri, 12 May 2023 21:18:15 -0700
+Subject: [PATCH 60/79] Enable AES on westmere (#97)
+
+Prior to this change: cpu_lcd(['AVX'], ['AVX','AES']) == ['AVX'],
+causing AES instructions to be treated as unsupported when "cpu
+WESTMERE" is used, or even "cpu WESTMERE AES".
+
+Fixed by reordering ordered_cpu_features such that now,
+cpu_lcd(['AVX'], ['AVX','AES']) == ['AES']. I don't know if there are
+CPUs this would not be correct for, but this is the value that's
+consistent with all extant CPU definitions.
+---
+ modules/arch/x86/gen_x86_insn.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/arch/x86/gen_x86_insn.py b/modules/arch/x86/gen_x86_insn.py
+index 0a798fea..8914d789 100755
+--- a/modules/arch/x86/gen_x86_insn.py
++++ b/modules/arch/x86/gen_x86_insn.py
+@@ -37,7 +37,7 @@ ordered_cpus = [
+ ordered_cpu_features = [
+     "FPU", "Cyrix", "AMD", "MMX", "3DNow", "SMM", "SSE", "SSE2",
+     "SSE3", "SVM", "PadLock", "SSSE3", "SSE41", "SSE42", "SSE4a", "SSE5",
+-    "AVX", "FMA", "AES", "CLMUL", "MOVBE", "XOP", "FMA4", "F16C",
++    "AES", "AVX", "FMA", "CLMUL", "MOVBE", "XOP", "FMA4", "F16C",
+     "FSGSBASE", "RDRAND", "XSAVEOPT", "EPTVPID", "SMX", "AVX2", "BMI1",
+     "BMI2", "INVPCID", "LZCNT", "TBM", "TSX", "SHA", "SMAP", "RDSEED", "ADX",
+     "PRFCHW"]
+-- 
+2.49.0
+

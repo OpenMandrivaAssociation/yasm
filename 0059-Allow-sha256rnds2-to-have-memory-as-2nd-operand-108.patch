@@ -1,0 +1,25 @@
+From f2f9f157dfbf3d43dadfdd73d03dd8c56ec84c1c Mon Sep 17 00:00:00 2001
+From: Peter Meerwald-Stadler <pmeerw@pmeerw.net>
+Date: Sat, 13 May 2023 06:17:09 +0200
+Subject: [PATCH 59/79] Allow sha256rnds2 to have memory as 2nd operand (#108)
+
+---
+ modules/arch/x86/gen_x86_insn.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/arch/x86/gen_x86_insn.py b/modules/arch/x86/gen_x86_insn.py
+index 09d64c7f..0a798fea 100755
+--- a/modules/arch/x86/gen_x86_insn.py
++++ b/modules/arch/x86/gen_x86_insn.py
+@@ -8096,7 +8096,7 @@ add_group("intel_SHA256RNDS2",
+ 	cpu=["SHA"],
+ 	opcode=[0x0F, 0x38, 0xCB],
+ 	operands=[Operand(type="SIMDReg", size=128, dest="Spare"),
+-		Operand(type="SIMDReg", size=128, dest="EA")])
++		Operand(type="SIMDRM", size=128, dest="EA")])
+ 
+ add_insn("SHA1MSG1", "intel_SHA1MSG1")
+ add_insn("SHA1MSG2", "intel_SHA1MSG2")
+-- 
+2.49.0
+

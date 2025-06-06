@@ -1,0 +1,24 @@
+From 4c2772c3f90fe66c21642f838e73dba20284fb0a Mon Sep 17 00:00:00 2001
+From: Peter Johnson <peter@tortall.net>
+Date: Fri, 19 Sep 2014 00:44:49 -0700
+Subject: [PATCH 09/79] Add missing objfmt_x64 to CMakeLists.txt.
+
+This caused cmake builds to not recognize "x64" as an object format.
+
+Reported by: Brian Gladman
+---
+ modules/objfmts/coff/CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/modules/objfmts/coff/CMakeLists.txt b/modules/objfmts/coff/CMakeLists.txt
+index 5f63d4f7..b25f9ac8 100644
+--- a/modules/objfmts/coff/CMakeLists.txt
++++ b/modules/objfmts/coff/CMakeLists.txt
+@@ -25,3 +25,4 @@ YASM_ADD_MODULE(objfmt_coff
+     )
+ list(APPEND YASM_MODULES objfmt_win32)
+ list(APPEND YASM_MODULES objfmt_win64)
++list(APPEND YASM_MODULES objfmt_x64)
+-- 
+2.49.0
+

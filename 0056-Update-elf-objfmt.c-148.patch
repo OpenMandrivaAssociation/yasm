@@ -1,0 +1,27 @@
+From 0799f381d513e18f404654047fa1b412084968c8 Mon Sep 17 00:00:00 2001
+From: kalebskeithley <kkeithle@redhat.com>
+Date: Sat, 13 May 2023 00:15:02 -0400
+Subject: [PATCH 56/79] Update elf-objfmt.c (#148)
+
+---
+ modules/objfmts/elf/elf-objfmt.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/modules/objfmts/elf/elf-objfmt.c b/modules/objfmts/elf/elf-objfmt.c
+index 0c3a1426..c4360c03 100644
+--- a/modules/objfmts/elf/elf-objfmt.c
++++ b/modules/objfmts/elf/elf-objfmt.c
+@@ -1077,6 +1077,10 @@ elf_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         align = 0;
+         data.type = SHT_PROGBITS;
+         data.flags = 0;
++    } else if (strcmp(sectname, ".note.gnu.property") == 0) {
++        align = 8;
++        data.type = SHT_NOTE;
++        data.flags = 0;
+     } else {
+         /* Default to code */
+         align = 1;
+-- 
+2.49.0
+

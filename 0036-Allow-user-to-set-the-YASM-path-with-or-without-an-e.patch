@@ -1,0 +1,26 @@
+From ea8f2393611025c5d32ddfe022dddff5a1a5c989 Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Sat, 12 Oct 2019 15:02:44 +0100
+Subject: [PATCH 36/79] Allow user to set the YASM path with or without an
+ ending backslash in Visual Studio integration
+
+---
+ Mkfiles/vs/vsyasm.props | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Mkfiles/vs/vsyasm.props b/Mkfiles/vs/vsyasm.props
+index 8e2269b6..9d5c14fa 100644
+--- a/Mkfiles/vs/vsyasm.props
++++ b/Mkfiles/vs/vsyasm.props
+@@ -18,7 +18,7 @@
+       <ObjectFile>$(IntDir)%(FileName).obj</ObjectFile>
+       <PreProc>0</PreProc>
+       <Parser>0</Parser>
+-      <CommandLineTemplate>"$(YASM_PATH)"vsyasm.exe -Xvc -f $(Platform) [AllOptions] [AdditionalOptions] [Inputs]</CommandLineTemplate>
++      <CommandLineTemplate>"$(YASM_PATH.TrimEnd('\'))"\vsyasm.exe -Xvc -f $(Platform) [AllOptions] [AdditionalOptions] [Inputs]</CommandLineTemplate>
+       <Outputs>%(ObjectFile)</Outputs>
+       <ExecutionDescription>Assembling %(Filename)%(Extension) ==> $(IntDir)%(FileName).obj</ExecutionDescription>
+       <ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
+-- 
+2.49.0
+

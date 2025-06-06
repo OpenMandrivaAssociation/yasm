@@ -1,0 +1,55 @@
+From 0c2d90c6b3fed94f83d821894e926d606d091277 Mon Sep 17 00:00:00 2001
+From: Denis Denisov <denji0k@gmail.com>
+Date: Sat, 15 Nov 2014 23:37:54 +0200
+Subject: [PATCH 15/79] Fix yasm segfaults GNU assembler files on OS X
+
+Bug: http://tortall.lighthouseapp.com/projects/78676/tickets/269
+---
+ modules/preprocs/gas/gas-preproc.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/modules/preprocs/gas/gas-preproc.c b/modules/preprocs/gas/gas-preproc.c
+index 96dec822..94d8f5da 100644
+--- a/modules/preprocs/gas/gas-preproc.c
++++ b/modules/preprocs/gas/gas-preproc.c
+@@ -409,12 +409,14 @@ static int gas_scan(void *preproc, struct tokenval *tokval)
+             { "^^", TOKEN_DBL_XOR },
+             { "||", TOKEN_DBL_OR }
+         };
+-        for (i = 0; i < sizeof(ops)/sizeof(ops[0]); i++) {
+-            if (!strcmp(str, ops[i].op)) {
+-                tokval->t_type = ops[i].token;
+-                break;
++       if (strlen(str) > 1) {
++            for (i = 0; i < sizeof(ops)/sizeof(ops[0]); i++) {
++                if (!strncmp(str, ops[i].op, 2)) {
++                    tokval->t_type = ops[i].token;
++                    break;
++                }
+             }
+-        }
++       }
+     }
+ 
+     if (tokval->t_type != TOKEN_INVALID) {
+@@ -427,7 +429,7 @@ static int gas_scan(void *preproc, struct tokenval *tokval)
+         tokval->t_type = c;
+ 
+         /* Is it a symbol? If so we need to make it a TOKEN_ID. */
+-        if (isalpha(c) || c == '_' || c == '.') {
++        if (isalpha(c) || c == '_' || c == '.' || c == '%') {
+             int symbol_length = 1;
+ 
+             c = get_char(pp);
+@@ -829,7 +831,7 @@ static int eval_macro(yasm_preproc_gas *pp, int unused, char *args)
+         skip_whitespace2(&line2);
+         if (starts_with(line2, ".macro")) {
+             nesting++;
+-        } else if (starts_with(line, ".endm") && --nesting == 0) {
++        } else if (starts_with(line2, ".endm") && --nesting == 0) {
+             return 1;
+         }
+         macro->num_lines++;
+-- 
+2.49.0
+

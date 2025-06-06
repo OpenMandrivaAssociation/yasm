@@ -1,0 +1,36 @@
+From 22da04ee0dbd9ac16eb74dabd3df071a0f8e8eba Mon Sep 17 00:00:00 2001
+From: Biswapriyo Nath <nathbappai@gmail.com>
+Date: Thu, 18 May 2023 00:37:24 +0530
+Subject: [PATCH 67/79] CI: update GitHub Actions version (#225)
+
+Node.js 12 actions are deprecated. For more information see:
+https://github.blog/changelog/2022-09-22-github-actions-all-actions-will-begin-running-on-node16-instead-of-node12/
+---
+ .github/workflows/build.yml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+index cc7d27b5..0454d53c 100644
+--- a/.github/workflows/build.yml
++++ b/.github/workflows/build.yml
+@@ -18,7 +18,7 @@ jobs:
+     name: "Build - ${{ matrix.artifact-name }}"
+     runs-on: ${{ matrix.os }}
+     steps:
+-      - uses: actions/checkout@v2
++      - uses: actions/checkout@v3
+       - name: Install autotools
+         run: |
+           if [ "$RUNNER_OS" == "macOS" ]; then
+@@ -34,7 +34,7 @@ jobs:
+       - name: Dist
+         run: make dist
+ 
+-      - uses: actions/upload-artifact@v2
++      - uses: actions/upload-artifact@v3
+         with:
+           name: ${{ matrix.artifact-name }}
+           path: yasm-*.tar.gz
+-- 
+2.49.0
+

@@ -1,0 +1,140 @@
+From d7abe469f522d3806924dab3ac5b07dfd11986bc Mon Sep 17 00:00:00 2001
+From: Peter Johnson <peter@tortall.net>
+Date: Sun, 5 Oct 2014 09:50:33 -0700
+Subject: [PATCH 12/79] Fix a few more cases of case sensitivity in module
+ handling.
+
+---
+ frontends/tasm/tasm.c     |  7 ++++---
+ frontends/vsyasm/vsyasm.c |  9 +++++----
+ frontends/yasm/yasm.c     | 13 +++++++------
+ 3 files changed, 16 insertions(+), 13 deletions(-)
+
+diff --git a/frontends/tasm/tasm.c b/frontends/tasm/tasm.c
+index 58954b64..8019ff75 100644
+--- a/frontends/tasm/tasm.c
++++ b/frontends/tasm/tasm.c
+@@ -356,7 +356,7 @@ do_assemble(void)
+     apply_preproc_saved_options();
+ 
+     /* Get initial x86 BITS setting from object format */
+-    if (strcmp(cur_arch_module->keyword, "x86") == 0) {
++    if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0) {
+         yasm_arch_set_var(cur_arch, "mode_bits",
+                           cur_objfmt_module->default_x86_mode_bits);
+     }
+@@ -380,7 +380,7 @@ do_assemble(void)
+     check_errors(errwarns, object, linemap);
+ 
+     /* open the object file for output (if not already opened by dbg objfmt) */
+-    if (!obj && strcmp(cur_objfmt_module->keyword, "dbg") != 0) {
++    if (!obj && yasm__strcasecmp(cur_objfmt_module->keyword, "dbg") != 0) {
+         obj = open_file(obj_filename, "wb");
+         if (!obj) {
+             cleanup(object);
+@@ -390,7 +390,8 @@ do_assemble(void)
+ 
+     /* Write the object file */
+     yasm_objfmt_output(object, obj?obj:stderr,
+-                       strcmp(cur_dbgfmt_module->keyword, "null"), errwarns);
++                       yasm__strcasecmp(cur_dbgfmt_module->keyword, "null"),
++                       errwarns);
+ 
+     /* Close object file */
+     if (obj)
+diff --git a/frontends/vsyasm/vsyasm.c b/frontends/vsyasm/vsyasm.c
+index 905145fa..1c0c3dfc 100644
+--- a/frontends/vsyasm/vsyasm.c
++++ b/frontends/vsyasm/vsyasm.c
+@@ -316,7 +316,7 @@ do_assemble(const char *in_filename)
+          * machine to amd64.  When we get more arches with multiple machines,
+          * we should do this in a more modular fashion.
+          */
+-        if (strcmp(cur_arch_module->keyword, "x86") == 0 &&
++        if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0 &&
+             cur_objfmt_module->default_x86_mode_bits == 64)
+             machine_name = yasm__xstrdup("amd64");
+         else
+@@ -394,7 +394,7 @@ do_assemble(const char *in_filename)
+     apply_preproc_saved_options(preproc);
+ 
+     /* Get initial x86 BITS setting from object format */
+-    if (strcmp(cur_arch_module->keyword, "x86") == 0) {
++    if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0) {
+         yasm_arch_set_var(arch, "mode_bits",
+                           cur_objfmt_module->default_x86_mode_bits);
+     }
+@@ -450,7 +450,7 @@ do_assemble(const char *in_filename)
+         return EXIT_FAILURE;
+ 
+     /* open the object file for output (if not already opened by dbg objfmt) */
+-    if (!obj && strcmp(cur_objfmt_module->keyword, "dbg") != 0) {
++    if (!obj && yasm__strcasecmp(cur_objfmt_module->keyword, "dbg") != 0) {
+         obj = open_file(obj_filename, "wb");
+         if (!obj) {
+             yasm_preproc_destroy(preproc);
+@@ -463,7 +463,8 @@ do_assemble(const char *in_filename)
+ 
+     /* Write the object file */
+     yasm_objfmt_output(object, obj?obj:stderr,
+-                       strcmp(cur_dbgfmt_module->keyword, "null"), errwarns);
++                       yasm__strcasecmp(cur_dbgfmt_module->keyword, "null"),
++                       errwarns);
+ 
+     /* Close object file */
+     if (obj)
+diff --git a/frontends/yasm/yasm.c b/frontends/yasm/yasm.c
+index ff4c59e2..7032e1fb 100644
+--- a/frontends/yasm/yasm.c
++++ b/frontends/yasm/yasm.c
+@@ -388,7 +388,7 @@ do_assemble(void)
+          * machine to amd64.  When we get more arches with multiple machines,
+          * we should do this in a more modular fashion.
+          */
+-        if (strcmp(cur_arch_module->keyword, "x86") == 0 &&
++        if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0 &&
+             cur_objfmt_module->default_x86_mode_bits == 64)
+             machine_name = yasm__xstrdup("amd64");
+         else
+@@ -399,8 +399,8 @@ do_assemble(void)
+     /* If we're using amd64 and the default objfmt is elfx32, change the
+      * machine to "x32".
+      */
+-    if (strcmp(machine_name, "amd64") == 0 &&
+-	strcmp(cur_objfmt_module->keyword, "elfx32") == 0)
++    if (yasm__strcasecmp(machine_name, "amd64") == 0 &&
++	yasm__strcasecmp(cur_objfmt_module->keyword, "elfx32") == 0)
+       machine = "x32";
+     else
+       machine = machine_name;
+@@ -482,7 +482,7 @@ do_assemble(void)
+     apply_preproc_saved_options();
+ 
+     /* Get initial x86 BITS setting from object format */
+-    if (strcmp(cur_arch_module->keyword, "x86") == 0) {
++    if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0) {
+         yasm_arch_set_var(cur_arch, "mode_bits",
+                           cur_objfmt_module->default_x86_mode_bits);
+     }
+@@ -534,7 +534,7 @@ do_assemble(void)
+     check_errors(errwarns, object, linemap);
+ 
+     /* open the object file for output (if not already opened by dbg objfmt) */
+-    if (!obj && strcmp(cur_objfmt_module->keyword, "dbg") != 0) {
++    if (!obj && yasm__strcasecmp(cur_objfmt_module->keyword, "dbg") != 0) {
+         obj = open_file(obj_filename, "wb");
+         if (!obj) {
+             cleanup(object);
+@@ -544,7 +544,8 @@ do_assemble(void)
+ 
+     /* Write the object file */
+     yasm_objfmt_output(object, obj?obj:stderr,
+-                       strcmp(cur_dbgfmt_module->keyword, "null"), errwarns);
++                       yasm__strcasecmp(cur_dbgfmt_module->keyword, "null"),
++                       errwarns);
+ 
+     /* Close object file */
+     if (obj)
+-- 
+2.49.0
+

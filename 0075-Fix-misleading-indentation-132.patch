@@ -1,0 +1,27 @@
+From 1f63a45d24b5d593b8bdacc91f1ce35713b20dc1 Mon Sep 17 00:00:00 2001
+From: Kent Ross <k@mad.cash>
+Date: Thu, 21 Sep 2023 22:05:25 -0700
+Subject: [PATCH 75/79] Fix misleading indentation (#132)
+
+---
+ tools/re2c/code.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/re2c/code.c b/tools/re2c/code.c
+index 92e24d58..e870eb1c 100644
+--- a/tools/re2c/code.c
++++ b/tools/re2c/code.c
+@@ -461,8 +461,8 @@ Go_genSwitch(Go *g, FILE *o, State *from, State *next, int *readCh){
+ 	    if(g->span[i].to != def)
+ 		*(t++) = &g->span[i];
+ 
+-	    if (dFlag)
+-		fputs("\tYYDEBUG(-1, yych);\n", o);
++	if (dFlag)
++	    fputs("\tYYDEBUG(-1, yych);\n", o);
+ 
+ #if 0
+ 	if (*readCh) {
+-- 
+2.49.0
+

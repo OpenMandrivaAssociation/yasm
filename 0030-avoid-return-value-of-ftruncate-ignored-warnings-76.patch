@@ -1,0 +1,27 @@
+From e256985c4929f4e550d8f70cad5fb936f81b7b06 Mon Sep 17 00:00:00 2001
+From: mostynb <mbmcode@gmail.com>
+Date: Sun, 24 Sep 2017 00:14:23 +0200
+Subject: [PATCH 30/79] avoid 'return value of ftruncate ignored' warnings
+ (#76)
+
+---
+ modules/objfmts/bin/bin-objfmt.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/modules/objfmts/bin/bin-objfmt.c b/modules/objfmts/bin/bin-objfmt.c
+index 69264a90..4a4ce96f 100644
+--- a/modules/objfmts/bin/bin-objfmt.c
++++ b/modules/objfmts/bin/bin-objfmt.c
+@@ -2040,7 +2040,8 @@ dosexe_objfmt_output(yasm_object *object, FILE *f, /*@unused@*/ int all_syms,
+     bss_size = tot_size - size;
+ #ifdef HAVE_FTRUNCATE
+     if (size != tot_size)
+-        ftruncate(fileno(f), EXE_HEADER_SIZE + size);
++        if (ftruncate(fileno(f), EXE_HEADER_SIZE + size))
++            ; /* No-op. Report an error? */
+ #endif
+     fseek(f, 0, SEEK_SET);
+ 
+-- 
+2.49.0
+

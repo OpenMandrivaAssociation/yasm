@@ -1,0 +1,40 @@
+From 35af9720e36df19382a57be26643b0d6bb48a363 Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Fri, 28 Sep 2018 00:38:32 +0100
+Subject: [PATCH 32/79] change vsyasm.props to use the YASM_PATH environment
+ variable if present
+
+---
+ Mkfiles/vc15/vsyasm.props | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Mkfiles/vc15/vsyasm.props b/Mkfiles/vc15/vsyasm.props
+index 889097fa..8e2269b6 100644
+--- a/Mkfiles/vc15/vsyasm.props
++++ b/Mkfiles/vc15/vsyasm.props
+@@ -10,7 +10,7 @@
+       Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(YASMDependsOn)</YASMDependsOn>
+   </PropertyGroup>
+   <PropertyGroup>
+-    <YasmPath Condition= "'$(YASMPATH)' == ''">C:\Program Files\yasm\</YasmPath>
++    <YASM_PATH Condition= "'$(YASM_PATH)' == ''">C:\Program Files\yasm\</YASM_PATH>
+   </PropertyGroup>
+   <ItemDefinitionGroup>
+     <YASM>
+@@ -18,10 +18,10 @@
+       <ObjectFile>$(IntDir)%(FileName).obj</ObjectFile>
+       <PreProc>0</PreProc>
+       <Parser>0</Parser>
+-      <CommandLineTemplate>"$(YasmPath)"vsyasm.exe -Xvc -f $(Platform) [AllOptions] [AdditionalOptions] [Inputs]</CommandLineTemplate>
++      <CommandLineTemplate>"$(YASM_PATH)"vsyasm.exe -Xvc -f $(Platform) [AllOptions] [AdditionalOptions] [Inputs]</CommandLineTemplate>
+       <Outputs>%(ObjectFile)</Outputs>
+       <ExecutionDescription>Assembling %(Filename)%(Extension) ==> $(IntDir)%(FileName).obj</ExecutionDescription>
+       <ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
+     </YASM>
+   </ItemDefinitionGroup>
+-</Project>
+\ No newline at end of file
++</Project>
+-- 
+2.49.0
+

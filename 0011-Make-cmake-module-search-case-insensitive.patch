@@ -1,0 +1,29 @@
+From 6818957d07ed4dfbcf21fbbb62fddfc2c93b28be Mon Sep 17 00:00:00 2001
+From: Peter Johnson <peter@tortall.net>
+Date: Sun, 5 Oct 2014 09:48:51 -0700
+Subject: [PATCH 11/79] Make cmake module search case-insensitive.
+
+This is needed to make things like "-f Win32" work, and matches the non-cmake
+behavior.
+
+[#276 state:resolved]
+---
+ libyasm/cmake-module.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libyasm/cmake-module.c b/libyasm/cmake-module.c
+index 2ee39ca8..0133f902 100644
+--- a/libyasm/cmake-module.c
++++ b/libyasm/cmake-module.c
+@@ -58,7 +58,7 @@ yasm_register_module(yasm_module_type type, const char *keyword, void *data)
+     assert(type < sizeof(loaded_modules));
+ 
+     if (!loaded_modules[type])
+-        loaded_modules[type] = HAMT_create(0, yasm_internal_error_);
++        loaded_modules[type] = HAMT_create(1, yasm_internal_error_);
+ 
+     HAMT_insert(loaded_modules[type], keyword, data, &replace,
+                 load_module_destroy);
+-- 
+2.49.0
+

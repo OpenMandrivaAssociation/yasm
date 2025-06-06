@@ -1,0 +1,125 @@
+From a277a590f00c13aed1d4244653e8bbab3c2d3558 Mon Sep 17 00:00:00 2001
+From: Biswapriyo Nath <nathbappai@gmail.com>
+Date: Sat, 13 May 2023 09:36:53 +0530
+Subject: [PATCH 49/79] Fix detecting Windows platform (#204)
+
+This replaces _MSC_VER macro with _WIN32 because the
+former one is for MSVC and Visual Studio only and is
+not defined in mingw environment. Wherease, _WIN32
+macro is the proper way to check Windows platform
+irrespective of compiler toolchain.
+
+See the following official link for more info
+https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros
+---
+ frontends/yasm/yasm-plugin.c | 10 +++++-----
+ libyasm-stdint.h.cmake       |  2 +-
+ modules/CMakeLists.txt       |  2 +-
+ plugins/dbg/init_plugin.c    |  2 +-
+ plugins/x86/init_plugin.c    |  2 +-
+ 5 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/frontends/yasm/yasm-plugin.c b/frontends/yasm/yasm-plugin.c
+index c64edc32..573ab45b 100644
+--- a/frontends/yasm/yasm-plugin.c
++++ b/frontends/yasm/yasm-plugin.c
+@@ -31,7 +31,7 @@
+ #include "libyasm-stdint.h"
+ #include "yasm-plugin.h"
+ 
+-#if defined(_MSC_VER)
++#if defined(_WIN32)
+ #include <windows.h>
+ #elif defined(__GNUC__)
+ #include <dlfcn.h>
+@@ -43,7 +43,7 @@ static int num_loaded_plugins = 0;
+ static void *
+ load_dll(const char *name)
+ {
+-#if defined(_MSC_VER)
++#if defined(_WIN32)
+     return LoadLibrary(name);
+ #elif defined(__GNUC__)
+     return dlopen(name, RTLD_NOW);
+@@ -62,7 +62,7 @@ load_plugin(const char *name)
+     /* Load library */
+ 
+     path = yasm_xmalloc(strlen(name)+10);
+-#if defined(_MSC_VER)
++#if defined(_WIN32)
+     strcpy(path, name);
+     strcat(path, ".dll");
+     lib = load_dll(path);
+@@ -92,7 +92,7 @@ load_plugin(const char *name)
+ 
+     /* Get yasm_init_plugin() function and run it */
+ 
+-#if defined(_MSC_VER)
++#if defined(_WIN32)
+     init_plugin =
+         (void (*)(void))GetProcAddress((HINSTANCE)lib, "yasm_init_plugin");
+ #elif defined(__GNUC__)
+@@ -115,7 +115,7 @@ unload_plugins(void)
+         return;
+ 
+     for (i = 0; i < num_loaded_plugins; i++) {
+-#if defined(_MSC_VER)
++#if defined(_WIN32)
+         FreeLibrary((HINSTANCE)loaded_plugins[i]);
+ #elif defined(__GNUC__)
+         dlclose(loaded_plugins[i]);
+diff --git a/libyasm-stdint.h.cmake b/libyasm-stdint.h.cmake
+index 3759a035..049037d5 100644
+--- a/libyasm-stdint.h.cmake
++++ b/libyasm-stdint.h.cmake
+@@ -26,7 +26,7 @@ typedef unsigned long uintptr_t;
+ #endif
+ 
+ #ifndef YASM_LIB_DECL
+-# if defined(BUILD_SHARED_LIBS) && defined(_MSC_VER)
++# if defined(BUILD_SHARED_LIBS) && defined(_WIN32)
+ #  ifdef YASM_LIB_SOURCE
+ #   define YASM_LIB_DECL __declspec(dllexport)
+ #  else
+diff --git a/modules/CMakeLists.txt b/modules/CMakeLists.txt
+index e3f8eb11..b6eceb0e 100644
+--- a/modules/CMakeLists.txt
++++ b/modules/CMakeLists.txt
+@@ -57,7 +57,7 @@ IF(regen_init_plugin_c)
+              "extern yasm_${_type}_module yasm_${_keyword}_LTX_${_type};\n")
+     ENDFOREACH(module)
+     IF(BUILD_SHARED_LIBS)
+-        FILE(APPEND ${INIT_PLUGIN_C} "\n#ifdef _MSC_VER\n")
++        FILE(APPEND ${INIT_PLUGIN_C} "\n#ifdef _WIN32\n")
+         FILE(APPEND ${INIT_PLUGIN_C} "__declspec(dllexport)\n")
+         FILE(APPEND ${INIT_PLUGIN_C} "#endif\n")
+     ENDIF(BUILD_SHARED_LIBS)
+diff --git a/plugins/dbg/init_plugin.c b/plugins/dbg/init_plugin.c
+index e8e53dc5..5c4eb6aa 100644
+--- a/plugins/dbg/init_plugin.c
++++ b/plugins/dbg/init_plugin.c
+@@ -3,7 +3,7 @@
+ 
+ extern yasm_arch_module yasm_dbg_LTX_objfmt;
+ 
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ __declspec(dllexport)
+ #endif
+ void
+diff --git a/plugins/x86/init_plugin.c b/plugins/x86/init_plugin.c
+index d2698b19..39a94ed0 100644
+--- a/plugins/x86/init_plugin.c
++++ b/plugins/x86/init_plugin.c
+@@ -3,7 +3,7 @@
+ 
+ extern yasm_arch_module yasm_x86_LTX_arch;
+ 
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ __declspec(dllexport)
+ #endif
+ void
+-- 
+2.49.0
+

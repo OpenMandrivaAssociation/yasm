@@ -1,0 +1,25 @@
+From 98a83602f2450b3619043a705af1c7f4ee4b2f7f Mon Sep 17 00:00:00 2001
+From: mx237 <mx237@users.noreply.github.com>
+Date: Sun, 3 May 2020 23:38:42 -0700
+Subject: [PATCH 39/79] Fix EOL handling in genmacro.c (#123)
+
+---
+ tools/genmacro/genmacro.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/genmacro/genmacro.c b/tools/genmacro/genmacro.c
+index 8e702b86..896cea5f 100644
+--- a/tools/genmacro/genmacro.c
++++ b/tools/genmacro/genmacro.c
+@@ -101,7 +101,7 @@ main(int argc, char *argv[])
+                 strp++;
+             len = strlen(strp);
+             while (len > 0 && (strp[len-1] == ' ' || strp[len-1] == '\t' ||
+-                               strp[len-1] == '\n')) {
++                               strp[len-1] == '\r' || strp[len-1] == '\n')) {
+                 strp[len-1] = '\0';
+                 len--;
+             }
+-- 
+2.49.0
+

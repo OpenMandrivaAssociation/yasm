@@ -1,0 +1,28 @@
+From 121ab150b3577b666c79a79f4a511798d7ad2432 Mon Sep 17 00:00:00 2001
+From: haruki3hhh <135201297+haruki3hhh@users.noreply.github.com>
+Date: Mon, 24 Jun 2024 18:08:27 -0500
+Subject: [PATCH 79/79] Fix null pointer dereference in yasm_section_bcs_append
+ (#263)
+
+---
+ libyasm/section.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/libyasm/section.c b/libyasm/section.c
+index 592f5b86..1459eccc 100644
+--- a/libyasm/section.c
++++ b/libyasm/section.c
+@@ -629,6 +629,10 @@ yasm_bytecode *
+ yasm_section_bcs_append(yasm_section *sect, yasm_bytecode *bc)
+ {
+     if (bc) {
++        if (!sect) {
++            yasm_error_set(YASM_ERROR_VALUE, "Attempt to append bytecode to a NULL section or with a NULL bytecode");
++            return NULL;
++        }
+         if (bc->callback) {
+             bc->section = sect;     /* record parent section */
+             STAILQ_INSERT_TAIL(&sect->bcs, bc, link);
+-- 
+2.49.0
+

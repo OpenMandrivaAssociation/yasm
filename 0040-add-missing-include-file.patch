@@ -1,0 +1,27 @@
+From c9db6d70a9ab62ce58a1cf123f2007d7a3ccc528 Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Mon, 4 May 2020 14:54:18 +0100
+Subject: [PATCH 40/79] add missing include file
+
+---
+ Mkfiles/vs/libyasm-stdint.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 Mkfiles/vs/libyasm-stdint.h
+
+diff --git a/Mkfiles/vs/libyasm-stdint.h b/Mkfiles/vs/libyasm-stdint.h
+new file mode 100644
+index 00000000..b66ab15f
+--- /dev/null
++++ b/Mkfiles/vs/libyasm-stdint.h
+@@ -0,0 +1,8 @@
++#ifndef _UINTPTR_T_DEFINED
++#ifdef _WIN64
++#include <vadefs.h>
++#else
++typedef unsigned long uintptr_t;
++#endif
++#define _UINTPTR_T_DEFINED
++#endif
+-- 
+2.49.0
+

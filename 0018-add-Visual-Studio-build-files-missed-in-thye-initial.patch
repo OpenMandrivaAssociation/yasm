@@ -1,0 +1,1748 @@
+From 7160679eee91323db98b0974596c7221eeff772c Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Mon, 27 Jul 2015 20:48:42 +0100
+Subject: [PATCH 18/79] add Visual Studio build files missed in thye initial
+ commit
+
+---
+ .gitignore                                    |  10 +-
+ Mkfiles/vc14/genmacro/genmacro.vcxproj        | 202 ++++++++++++++
+ .../vc14/genmacro/genmacro.vcxproj.filters    |  17 ++
+ Mkfiles/vc14/genmacro/run.bat                 |   5 +
+ Mkfiles/vc14/genmodule/genmodule.vcxproj      | 207 +++++++++++++++
+ .../vc14/genmodule/genmodule.vcxproj.filters  |  20 ++
+ Mkfiles/vc14/genmodule/run.bat                |   3 +
+ Mkfiles/vc14/genperf/genperf.vcxproj          | 249 ++++++++++++++++++
+ Mkfiles/vc14/genperf/genperf.vcxproj.filters  |  56 ++++
+ Mkfiles/vc14/genperf/run.bat                  |  39 +++
+ Mkfiles/vc14/genstring/genstring.vcxproj      | 196 ++++++++++++++
+ .../vc14/genstring/genstring.vcxproj.filters  |  17 ++
+ Mkfiles/vc14/genstring/run.bat                |   2 +
+ Mkfiles/vc14/genversion/genversion.vcxproj    | 223 ++++++++++++++++
+ .../genversion/genversion.vcxproj.filters     |  26 ++
+ Mkfiles/vc14/genversion/run.bat               |   2 +
+ Mkfiles/vc14/genversion/runpre.bat            |   2 +
+ Mkfiles/vc14/re2c/re2c.vcxproj                | 221 ++++++++++++++++
+ Mkfiles/vc14/re2c/re2c.vcxproj.filters        |  80 ++++++
+ Mkfiles/vc14/re2c/run.bat                     |   4 +
+ 20 files changed, 1572 insertions(+), 9 deletions(-)
+ create mode 100644 Mkfiles/vc14/genmacro/genmacro.vcxproj
+ create mode 100644 Mkfiles/vc14/genmacro/genmacro.vcxproj.filters
+ create mode 100644 Mkfiles/vc14/genmacro/run.bat
+ create mode 100644 Mkfiles/vc14/genmodule/genmodule.vcxproj
+ create mode 100644 Mkfiles/vc14/genmodule/genmodule.vcxproj.filters
+ create mode 100644 Mkfiles/vc14/genmodule/run.bat
+ create mode 100644 Mkfiles/vc14/genperf/genperf.vcxproj
+ create mode 100644 Mkfiles/vc14/genperf/genperf.vcxproj.filters
+ create mode 100644 Mkfiles/vc14/genperf/run.bat
+ create mode 100644 Mkfiles/vc14/genstring/genstring.vcxproj
+ create mode 100644 Mkfiles/vc14/genstring/genstring.vcxproj.filters
+ create mode 100644 Mkfiles/vc14/genstring/run.bat
+ create mode 100644 Mkfiles/vc14/genversion/genversion.vcxproj
+ create mode 100644 Mkfiles/vc14/genversion/genversion.vcxproj.filters
+ create mode 100644 Mkfiles/vc14/genversion/run.bat
+ create mode 100644 Mkfiles/vc14/genversion/runpre.bat
+ create mode 100644 Mkfiles/vc14/re2c/re2c.vcxproj
+ create mode 100644 Mkfiles/vc14/re2c/re2c.vcxproj.filters
+ create mode 100644 Mkfiles/vc14/re2c/run.bat
+
+diff --git a/Mkfiles/vc14/genmacro/genmacro.vcxproj b/Mkfiles/vc14/genmacro/genmacro.vcxproj
+new file mode 100644
+index 00000000..f4bbc6f3
+--- /dev/null
++++ b/Mkfiles/vc14/genmacro/genmacro.vcxproj
+@@ -0,0 +1,202 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{225700A5-07B8-434E-AD61-555278BF6733}</ProjectGuid>
++    <RootNamespace>genmacro</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>true</MinimalRebuild>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmacro.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmacro.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmacro.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmacro.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\tools\genmacro\genmacro.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <ItemGroup>
++    <ProjectReference Include="..\genversion\genversion.vcxproj">
++      <Project>{b545983b-8ee0-4a7b-a67a-e749eeae62a2}</Project>
++      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
++    </ProjectReference>
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genmacro/genmacro.vcxproj.filters b/Mkfiles/vc14/genmacro/genmacro.vcxproj.filters
+new file mode 100644
+index 00000000..402cf1b4
+--- /dev/null
++++ b/Mkfiles/vc14/genmacro/genmacro.vcxproj.filters
+@@ -0,0 +1,17 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
++      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\tools\genmacro\genmacro.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genmacro/run.bat b/Mkfiles/vc14/genmacro/run.bat
+new file mode 100644
+index 00000000..98c337ac
+--- /dev/null
++++ b/Mkfiles/vc14/genmacro/run.bat
+@@ -0,0 +1,5 @@
++cd ..\..\..
++%1 nasm-version.c nasm_version_mac version.mac
++%1 nasm-macros.c nasm_standard_mac modules\parsers\nasm\nasm-std.mac
++%1 win64-nasm.c win64_nasm_stdmac modules\objfmts\coff\win64-nasm.mac
++%1 win64-gas.c win64_gas_stdmac modules\objfmts\coff\win64-gas.mac
+diff --git a/Mkfiles/vc14/genmodule/genmodule.vcxproj b/Mkfiles/vc14/genmodule/genmodule.vcxproj
+new file mode 100644
+index 00000000..44f2a002
+--- /dev/null
++++ b/Mkfiles/vc14/genmodule/genmodule.vcxproj
+@@ -0,0 +1,207 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{F0E8B707-00C5-4FF2-B8EF-7C39817132A0}</ProjectGuid>
++    <RootNamespace>genmodule</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;FILTERMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>true</MinimalRebuild>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmodule.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;FILTERMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmodule.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;FILTERMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmodule.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;FILTERMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genmodule.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\libyasm\genmodule.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\..\libyasm\compat-queue.h" />
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genmodule/genmodule.vcxproj.filters b/Mkfiles/vc14/genmodule/genmodule.vcxproj.filters
+new file mode 100644
+index 00000000..d3255c29
+--- /dev/null
++++ b/Mkfiles/vc14/genmodule/genmodule.vcxproj.filters
+@@ -0,0 +1,20 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
++      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\libyasm\genmodule.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\..\libyasm\compat-queue.h" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genmodule/run.bat b/Mkfiles/vc14/genmodule/run.bat
+new file mode 100644
+index 00000000..00055692
+--- /dev/null
++++ b/Mkfiles/vc14/genmodule/run.bat
+@@ -0,0 +1,3 @@
++@echo off
++cd ..\..\..
++%1 libyasm\module.in Makefile.am
+diff --git a/Mkfiles/vc14/genperf/genperf.vcxproj b/Mkfiles/vc14/genperf/genperf.vcxproj
+new file mode 100644
+index 00000000..0cb39069
+--- /dev/null
++++ b/Mkfiles/vc14/genperf/genperf.vcxproj
+@@ -0,0 +1,249 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{C45A8B59-8B59-4D5D-A8E8-FB090F8DD619}</ProjectGuid>
++    <RootNamespace>genperf</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
++    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreBuildEventUseInBuild>
++    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
++    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreBuildEventUseInBuild>
++    <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreLinkEventUseInBuild>
++    <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreLinkEventUseInBuild>
++    <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreLinkEventUseInBuild>
++    <PreLinkEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreLinkEventUseInBuild>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;STDC_HEADERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>true</MinimalRebuild>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genperf.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>
++      </Command>
++    </PostBuildEvent>
++    <CustomBuildStep>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </CustomBuildStep>
++    <CustomBuildStep>
++      <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
++    </CustomBuildStep>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;STDC_HEADERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genperf.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>
++      </Command>
++    </PostBuildEvent>
++    <CustomBuildStep>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </CustomBuildStep>
++    <CustomBuildStep>
++      <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
++    </CustomBuildStep>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;STDC_HEADERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genperf.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>
++      </Command>
++    </PostBuildEvent>
++    <CustomBuildStep>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </CustomBuildStep>
++    <CustomBuildStep>
++      <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
++    </CustomBuildStep>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;STDC_HEADERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genperf.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>
++      </Command>
++    </PostBuildEvent>
++    <CustomBuildStep>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </CustomBuildStep>
++    <CustomBuildStep>
++      <Outputs>x86insn_nasm.c;x86insn_gas.c;x86cpu.c;x86regtmod.c;%(Outputs)</Outputs>
++    </CustomBuildStep>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\tools\genperf\genperf.c" />
++    <ClCompile Include="..\..\..\tools\genperf\perfect.c" />
++    <ClCompile Include="..\..\..\libyasm\phash.c" />
++    <ClCompile Include="..\..\..\libyasm\xmalloc.c" />
++    <ClCompile Include="..\..\..\libyasm\xstrdup.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\..\libyasm\compat-queue.h" />
++    <ClInclude Include="..\..\..\libyasm\phash.h" />
++    <ClInclude Include="..\..\..\tools\genperf\perfect.h" />
++    <ClInclude Include="..\..\..\tools\genperf\standard.h" />
++    <ClInclude Include="..\..\..\util.h" />
++    <ClInclude Include="..\config.h" />
++    <ClInclude Include="..\libyasm-stdint.h" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genperf/genperf.vcxproj.filters b/Mkfiles/vc14/genperf/genperf.vcxproj.filters
+new file mode 100644
+index 00000000..3124b5d7
+--- /dev/null
++++ b/Mkfiles/vc14/genperf/genperf.vcxproj.filters
+@@ -0,0 +1,56 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <Filter Include="Header Files">
++      <UniqueIdentifier>{3C1E9AA8-6338-4CED-99F1-BEBA80607BD5}</UniqueIdentifier>
++      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
++    </Filter>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{1062695D-1C50-4068-8313-73A409885BC1}</UniqueIdentifier>
++      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\libyasm\phash.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\libyasm\xmalloc.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\libyasm\xstrdup.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\genperf\genperf.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\genperf\perfect.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\..\tools\genperf\perfect.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\genperf\standard.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\util.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\libyasm\compat-queue.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\libyasm-stdint.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\libyasm\phash.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\config.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genperf/run.bat b/Mkfiles/vc14/genperf/run.bat
+new file mode 100644
+index 00000000..4f655b84
+--- /dev/null
++++ b/Mkfiles/vc14/genperf/run.bat
+@@ -0,0 +1,39 @@
++cd ..\..\..
++@echo off
++
++for /f "usebackq tokens=1*" %%f in (`reg query HKCR\Applications\python.exe\shell\open\command  2^>NUL`) do (set _my_=%%f %%g)
++goto try1%errorlevel%
++
++:try10
++goto ok
++
++:try11
++for /f "usebackq tokens=1*" %%f in (`reg query HKCR\Python.File\shell\open\command 2^>NUL`) do (set _my_=%%f %%g)
++goto try2%errorlevel%
++
++:try20:
++goto ok
++
++:try21:
++echo Building without Python ...
++goto therest
++
++:ok
++echo Building with Python ...
++set _res_=%_my_:*REG_SZ=%
++set _end_=%_res_:*exe"=%
++call set _python_=%%_res_:%_end_%=%%
++call %_python_% modules\arch\x86\gen_x86_insn.py
++
++:therest
++@echo on
++call :update %1 x86insn_nasm.gperf x86insn_nasm.c
++call :update %1 x86insn_gas.gperf x86insn_gas.c
++call :update %1 modules\arch\x86\x86cpu.gperf x86cpu.c
++call :update %1 modules\arch\x86\x86regtmod.gperf x86regtmod.c
++goto :eof
++
++:update
++%1 %2 tf
++call mkfiles\vc14\out_copy_rename tf .\ %3
++del tf
+diff --git a/Mkfiles/vc14/genstring/genstring.vcxproj b/Mkfiles/vc14/genstring/genstring.vcxproj
+new file mode 100644
+index 00000000..239c8cf7
+--- /dev/null
++++ b/Mkfiles/vc14/genstring/genstring.vcxproj
+@@ -0,0 +1,196 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{021CEB0A-F721-4F59-B349-9CEEAF244459}</ProjectGuid>
++    <RootNamespace>genstring</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>true</MinimalRebuild>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genstring.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genstring.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genstring.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genstring.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\genstring.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genstring/genstring.vcxproj.filters b/Mkfiles/vc14/genstring/genstring.vcxproj.filters
+new file mode 100644
+index 00000000..04ed411d
+--- /dev/null
++++ b/Mkfiles/vc14/genstring/genstring.vcxproj.filters
+@@ -0,0 +1,17 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{28EBE11C-5BE8-4935-9381-F57696749E0C}</UniqueIdentifier>
++      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\genstring.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genstring/run.bat b/Mkfiles/vc14/genstring/run.bat
+new file mode 100644
+index 00000000..baedcecb
+--- /dev/null
++++ b/Mkfiles/vc14/genstring/run.bat
+@@ -0,0 +1,2 @@
++cd ..\..\..
++%1 license_msg license.c COPYING
+diff --git a/Mkfiles/vc14/genversion/genversion.vcxproj b/Mkfiles/vc14/genversion/genversion.vcxproj
+new file mode 100644
+index 00000000..f9a5298c
+--- /dev/null
++++ b/Mkfiles/vc14/genversion/genversion.vcxproj
+@@ -0,0 +1,223 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{B545983B-8EE0-4A7B-A67A-E749EEAE62A2}</ProjectGuid>
++    <RootNamespace>genversion</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..\..\vc10;..\..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>true</MinimalRebuild>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genversion.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++    <PreBuildEvent>
++      <Command>cd ..\..\..\
++YASM-VERSION-GEN.bat
++</Command>
++    </PreBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..\..\vc10;..\..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genversion.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++    <PreBuildEvent>
++      <Command>cd ..\..\..\
++YASM-VERSION-GEN.bat
++</Command>
++    </PreBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>..\..\vc10;..\..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genversion.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++    <PreBuildEvent>
++      <Command>cd ..\..\..\
++YASM-VERSION-GEN.bat
++</Command>
++    </PreBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>..\..\vc10;..\..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)genversion.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++    <PreBuildEvent>
++      <Command>cd ..\..\..\
++YASM-VERSION-GEN.bat
++</Command>
++    </PreBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\modules\preprocs\nasm\genversion.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\config.h" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genversion/genversion.vcxproj.filters b/Mkfiles/vc14/genversion/genversion.vcxproj.filters
+new file mode 100644
+index 00000000..cc088b12
+--- /dev/null
++++ b/Mkfiles/vc14/genversion/genversion.vcxproj.filters
+@@ -0,0 +1,26 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <Filter Include="Header Files">
++      <UniqueIdentifier>{2acbec3a-0ed8-4b2e-826e-a84c7d35f205}</UniqueIdentifier>
++      <Extensions>h;hpp;hxx;hm;inl</Extensions>
++    </Filter>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{E67ED277-E4F2-4D79-8C9E-962BAC164F3F}</UniqueIdentifier>
++      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\modules\preprocs\nasm\genversion.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\config.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/genversion/run.bat b/Mkfiles/vc14/genversion/run.bat
+new file mode 100644
+index 00000000..41b19cad
+--- /dev/null
++++ b/Mkfiles/vc14/genversion/run.bat
+@@ -0,0 +1,2 @@
++cd ..\..\..
++%1 version.mac
+diff --git a/Mkfiles/vc14/genversion/runpre.bat b/Mkfiles/vc14/genversion/runpre.bat
+new file mode 100644
+index 00000000..fdd15708
+--- /dev/null
++++ b/Mkfiles/vc14/genversion/runpre.bat
+@@ -0,0 +1,2 @@
++cd ..\..\..
++YASM-VERSION-GEN.bat
+diff --git a/Mkfiles/vc14/re2c/re2c.vcxproj b/Mkfiles/vc14/re2c/re2c.vcxproj
+new file mode 100644
+index 00000000..135b43ba
+--- /dev/null
++++ b/Mkfiles/vc14/re2c/re2c.vcxproj
+@@ -0,0 +1,221 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup Label="ProjectConfigurations">
++    <ProjectConfiguration Include="Debug|Win32">
++      <Configuration>Debug</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|x64">
++      <Configuration>Debug</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|Win32">
++      <Configuration>Release</Configuration>
++      <Platform>Win32</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|x64">
++      <Configuration>Release</Configuration>
++      <Platform>x64</Platform>
++    </ProjectConfiguration>
++  </ItemGroup>
++  <PropertyGroup Label="Globals">
++    <ProjectGuid>{3C58BE13-50A3-4583-984D-D8902B3D7713}</ProjectGuid>
++    <RootNamespace>re2c</RootNamespace>
++    <Keyword>Win32Proj</Keyword>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
++    <ConfigurationType>Application</ConfigurationType>
++    <CharacterSet>MultiByte</CharacterSet>
++    <PlatformToolset>v140</PlatformToolset>
++  </PropertyGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
++  <ImportGroup Label="ExtensionSettings">
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
++    <Import Project="..\crt_secure_no_deprecate.props" />
++  </ImportGroup>
++  <PropertyGroup Label="UserMacros" />
++  <PropertyGroup>
++    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
++    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++  </PropertyGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>true</MinimalRebuild>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)re2c.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
++    <ClCompile>
++      <Optimization>Disabled</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)re2c.exe</OutputFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)re2c.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++      <TargetMachine>MachineX86</TargetMachine>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
++    <ClCompile>
++      <Optimization>Full</Optimization>
++      <AdditionalIncludeDirectories>..;../../..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <PrecompiledHeader>
++      </PrecompiledHeader>
++      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
++      <WarningLevel>Level3</WarningLevel>
++      <CompileAs>Default</CompileAs>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)re2c.exe</OutputFile>
++      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <RandomizedBaseAddress>false</RandomizedBaseAddress>
++      <DataExecutionPrevention>
++      </DataExecutionPrevention>
++    </Link>
++    <PostBuildEvent>
++      <Command>run.bat "$(TargetPath)"</Command>
++    </PostBuildEvent>
++  </ItemDefinitionGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\tools\re2c\actions.c" />
++    <ClCompile Include="..\..\..\tools\re2c\code.c" />
++    <ClCompile Include="..\..\..\tools\re2c\dfa.c" />
++    <ClCompile Include="..\..\..\tools\re2c\main.c" />
++    <ClCompile Include="..\..\..\tools\re2c\mbo_getopt.c" />
++    <ClCompile Include="..\..\..\tools\re2c\parser.c" />
++    <ClCompile Include="..\..\..\tools\re2c\scanner.c" />
++    <ClCompile Include="..\..\..\tools\re2c\substr.c" />
++    <ClCompile Include="..\..\..\tools\re2c\translate.c" />
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\..\tools\re2c\basics.h" />
++    <ClInclude Include="..\..\..\tools\re2c\dfa.h" />
++    <ClInclude Include="..\..\..\tools\re2c\globals.h" />
++    <ClInclude Include="..\..\..\tools\re2c\ins.h" />
++    <ClInclude Include="..\..\..\tools\re2c\mbo_getopt.h" />
++    <ClInclude Include="..\..\..\tools\re2c\parse.h" />
++    <ClInclude Include="..\..\..\tools\re2c\parser.h" />
++    <ClInclude Include="..\..\..\tools\re2c\re.h" />
++    <ClInclude Include="..\..\..\tools\re2c\scanner.h" />
++    <ClInclude Include="..\..\..\tools\re2c\substr.h" />
++    <ClInclude Include="..\..\..\tools\re2c\token.h" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <ImportGroup Label="ExtensionTargets">
++  </ImportGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/re2c/re2c.vcxproj.filters b/Mkfiles/vc14/re2c/re2c.vcxproj.filters
+new file mode 100644
+index 00000000..da0f935c
+--- /dev/null
++++ b/Mkfiles/vc14/re2c/re2c.vcxproj.filters
+@@ -0,0 +1,80 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <ItemGroup>
++    <Filter Include="Header Files">
++      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
++      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
++    </Filter>
++    <Filter Include="Source Files">
++      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
++      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
++    </Filter>
++  </ItemGroup>
++  <ItemGroup>
++    <ClCompile Include="..\..\..\tools\re2c\actions.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\code.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\dfa.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\main.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\mbo_getopt.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\parser.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\scanner.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\substr.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="..\..\..\tools\re2c\translate.c">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++  </ItemGroup>
++  <ItemGroup>
++    <ClInclude Include="..\..\..\tools\re2c\basics.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\dfa.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\globals.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\ins.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\parse.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\parser.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\re.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\scanner.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\substr.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\token.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++    <ClInclude Include="..\..\..\tools\re2c\mbo_getopt.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="run.bat" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/Mkfiles/vc14/re2c/run.bat b/Mkfiles/vc14/re2c/run.bat
+new file mode 100644
+index 00000000..6ac571f0
+--- /dev/null
++++ b/Mkfiles/vc14/re2c/run.bat
+@@ -0,0 +1,4 @@
++cd ..\..\..\
++%1 -s -o lc3bid.c modules\arch\lc3b\lc3bid.re
++%1 -b -o nasm-token.c modules\parsers\nasm\nasm-token.re
++%1 -b -o gas-token.c modules\parsers\gas\gas-token.re
+-- 
+2.49.0
+

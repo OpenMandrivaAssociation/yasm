@@ -1,0 +1,36 @@
+From 101bca9ca8ef3c07de9432dfae6e5c182ad00932 Mon Sep 17 00:00:00 2001
+From: MonicaLiu <110024546+MonicaLiu0311@users.noreply.github.com>
+Date: Thu, 15 Sep 2022 07:38:24 +0800
+Subject: [PATCH 47/79] Add vcpkg installation instructions (#200)
+
+Co-authored-by: Monica <v-liumonica@microsoft.com>
+---
+ INSTALL | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/INSTALL b/INSTALL
+index b42a17ac..29a2b29e 100644
+--- a/INSTALL
++++ b/INSTALL
+@@ -51,6 +51,18 @@ The simplest way to compile this package is:
+      all sorts of other programs in order to regenerate files that came
+      with the distribution.
+ 
++Installation using vcpkg
++==================
++You can build and install yasm using [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
++
++   `git clone https://github.com/Microsoft/vcpkg.git'
++   `cd vcpkg'
++   `./bootstrap-vcpkg.sh'  # `./bootstrap-vcpkg.bat' for Windows
++   `./vcpkg integrate install'
++   `./vcpkg install yasm'
++
++The yasm port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
++
+ Compilers and Options
+ =====================
+ 
+-- 
+2.49.0
+

@@ -1,0 +1,56 @@
+From 91d628ac60580a75011e49f1fcad4b3aa720ea4e Mon Sep 17 00:00:00 2001
+From: Paul Blinzer <paul.blinzer@amd.com>
+Date: Sat, 23 Sep 2017 15:08:03 -0700
+Subject: [PATCH 25/79] New AMD Excavator MONITORX, MWAITX instruction support
+ (for 32bit/64bit) (#78)
+
+MONITORX has opcode "0F 01 FA".
+rAX contains address to be monitored
+ECX specifies optional extensions
+EDX specifies optional hints
+
+MWAITX has opcode "0F 01 FA".
+EAX specifies optional hints
+ECX specifies optional extensions
+
+Public documentation: http://support.amd.com/TechDocs/24594.pdf
+
+New CLZERO instruction support (for 32bit/64bit)
+		* clzero has opcode "0F 01 FC".
+		* clzero gets enabled with CPUID, 8000_0008, EBX[0] =1.
+		* clzero instruction zero's out the 64 byte cache line specified in rAX. Bits 5:0 of rAX are ignored
+
+Copyright (c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+Redistributed under simplified 2-clause BSD licence
+---
+ modules/arch/x86/gen_x86_insn.py | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/modules/arch/x86/gen_x86_insn.py b/modules/arch/x86/gen_x86_insn.py
+index 88972b01..6f221218 100755
+--- a/modules/arch/x86/gen_x86_insn.py
++++ b/modules/arch/x86/gen_x86_insn.py
+@@ -8267,6 +8267,20 @@ add_insn("vmload", "svm_rax", modifiers=[0xDA])
+ add_insn("vmrun", "svm_rax", modifiers=[0xD8])
+ add_insn("vmsave", "svm_rax", modifiers=[0xDB])
+ 
++
++#####################################################################
++# AMD Excavator, new instructions MONITORX, MWAITX   
++#####################################################################
++
++add_insn("monitorx", "threebyte", modifiers=[0x0F, 0x01, 0xFA], cpu=["AMD"])
++add_insn("mwaitx",   "threebyte", modifiers=[0x0F, 0x01, 0xFB], cpu=["AMD"])
++
++#####################################################################
++# AMD Zen, new instructions CLZERO
++#####################################################################
++
++add_insn("clzero",   "threebyte", modifiers=[0x0F, 0x01, 0xFC], cpu=["AMD"])
++
+ #####################################################################
+ # VIA PadLock instructions
+ #####################################################################
+-- 
+2.49.0
+

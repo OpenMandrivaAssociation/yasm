@@ -1,0 +1,130 @@
+From 8da658af79b51133699effefcc848fdb0e366fc2 Mon Sep 17 00:00:00 2001
+From: Jannis Harder <jix@jixco.de>
+Date: Fri, 27 Jul 2012 17:57:23 +0200
+Subject: [PATCH 03/79] Overrides and dummy value finalization for bin
+
+- Added support for overriding certain functions
+- Override value_finalize with dummy function for the bin objfmt
+---
+ libyasm/section.c                |  7 +++++++
+ libyasm/section.h                | 10 ++++++++++
+ libyasm/value.c                  | 11 +++++++++++
+ modules/objfmts/bin/bin-objfmt.c | 10 ++++++++++
+ 4 files changed, 38 insertions(+)
+
+diff --git a/libyasm/section.c b/libyasm/section.c
+index 9242fb01..7198beb7 100644
+--- a/libyasm/section.c
++++ b/libyasm/section.c
+@@ -241,6 +241,11 @@ yasm_object_create(const char *src_filename, const char *obj_filename,
+     /* Initialize things to NULL in case of error */
+     object->dbgfmt = NULL;
+ 
++    /* Initialize override structure */
++    object->overrides = yasm_xmalloc(sizeof(yasm_overrides));
++
++    object->overrides->value_finalize = NULL;
++
+     /* Initialize the object format */
+     object->objfmt = yasm_objfmt_create(objfmt_module, object);
+     if (!object->objfmt) {
+@@ -485,6 +490,8 @@ yasm_object_destroy(yasm_object *object)
+     if (object->arch)
+         yasm_arch_destroy(object->arch);
+ 
++    yasm_xfree(object->overrides);
++
+     yasm_xfree(object);
+ }
+ 
+diff --git a/libyasm/section.h b/libyasm/section.h
+index 2c7faa4d..5bdd4419 100644
+--- a/libyasm/section.h
++++ b/libyasm/section.h
+@@ -45,6 +45,15 @@ struct yasm_reloc {
+     /*@dependent@*/ yasm_symrec *sym;       /**< Relocated symbol */
+ };
+ 
++/** Structure of functions that can be overridden
++ */
++typedef struct yasm_overrides {
++    /** TODO: documentation
++     */
++    int
++    (*value_finalize)(yasm_value *value, yasm_bytecode *precbc);
++} yasm_overrides;
++
+ /** An object.  This is the internal representation of an object file. */
+ struct yasm_object {
+     /*@owned@*/ char *src_filename;     /**< Source filename */
+@@ -54,6 +63,7 @@ struct yasm_object {
+     /*@owned@*/ yasm_arch *arch;        /**< Target architecture */
+     /*@owned@*/ yasm_objfmt *objfmt;    /**< Object format */
+     /*@owned@*/ yasm_dbgfmt *dbgfmt;    /**< Debug format */
++    /*@owned@*/ yasm_overrides *overrides; /**< Function overrides */
+ 
+     /** Currently active section.  Used by some directives.  NULL if no
+      * section active.
+diff --git a/libyasm/value.c b/libyasm/value.c
+index 3ab73c1c..47873cf7 100644
+--- a/libyasm/value.c
++++ b/libyasm/value.c
+@@ -459,9 +459,20 @@ yasm_value_finalize_expr(yasm_value *value, yasm_expr *e,
+ int
+ yasm_value_finalize(yasm_value *value, yasm_bytecode *precbc)
+ {
++    yasm_object *object = NULL;
+     if (!value->abs)
+         return 0;
+ 
++    if (precbc != NULL)
++        object = yasm_section_get_object(precbc->section);
++
++    if (object && object->overrides->value_finalize) {
++        int result;
++        result = object->overrides->value_finalize(value, precbc);
++        if (result != -1)
++            return result;
++    }
++
+     value->abs = yasm_expr__level_tree(value->abs, 1, 1, 0, 0, NULL, NULL);
+ 
+     /* quit early if there was an issue in simplify() */
+diff --git a/modules/objfmts/bin/bin-objfmt.c b/modules/objfmts/bin/bin-objfmt.c
+index 12c2670d..215f494e 100644
+--- a/modules/objfmts/bin/bin-objfmt.c
++++ b/modules/objfmts/bin/bin-objfmt.c
+@@ -104,6 +104,7 @@ static const yasm_assoc_data_callback bin_symrec_data_cb = {
+ 
+ yasm_objfmt_module yasm_bin_LTX_objfmt;
+ 
++static int bin_objfmt_value_finalize(yasm_value *value, yasm_bytecode *precbc);
+ 
+ static yasm_objfmt *
+ bin_objfmt_create(yasm_object *object)
+@@ -115,6 +116,8 @@ bin_objfmt_create(yasm_object *object)
+     objfmt_bin->map_filename = NULL;
+     objfmt_bin->org = NULL;
+ 
++    object->overrides->value_finalize = bin_objfmt_value_finalize;
++
+     return (yasm_objfmt *)objfmt_bin;
+ }
+ 
+@@ -935,6 +938,13 @@ check_lma_overlap(yasm_section *sect, /*@null@*/ void *d)
+     return 0;
+ }
+ 
++static int
++bin_objfmt_value_finalize(yasm_value *value, yasm_bytecode *precbc)
++{
++    /* TODO do some finalization to avoid breaking stuff that depends on it */
++    return 0;
++}
++
+ static int
+ bin_objfmt_output_value(yasm_value *value, unsigned char *buf,
+                         unsigned int destsize,
+-- 
+2.49.0
+

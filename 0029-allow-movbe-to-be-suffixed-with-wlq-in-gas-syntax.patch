@@ -1,0 +1,35 @@
+From 6eac25ff8c63a448fc6b4452a8697f8e0ee7d021 Mon Sep 17 00:00:00 2001
+From: Matt Oliver <protogonoi@gmail.com>
+Date: Tue, 4 Apr 2017 03:58:31 +1000
+Subject: [PATCH 29/79] allow movbe to be suffixed with wlq in gas syntax.
+
+---
+ modules/arch/x86/gen_x86_insn.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/modules/arch/x86/gen_x86_insn.py b/modules/arch/x86/gen_x86_insn.py
+index 6f221218..b21c74a2 100755
+--- a/modules/arch/x86/gen_x86_insn.py
++++ b/modules/arch/x86/gen_x86_insn.py
+@@ -7909,15 +7909,17 @@ add_insn("xsaveopt64", "xsaveopt64", modifiers=[6, 0x0F, 0xAE],
+ #####################################################################
+ # Intel MOVBE instruction
+ #####################################################################
+-for sz in (16, 32, 64):
++for sfx, sz in zip("wlq", [16, 32, 64]):
+     add_group("movbe",
+         cpu=["MOVBE"],
++        suffix=sfx,
+         opersize=sz,
+         opcode=[0x0F, 0x38, 0xF0],
+         operands=[Operand(type="Reg", size=sz, dest="Spare"),
+                   Operand(type="Mem", size=sz, relaxed=True, dest="EA")])
+     add_group("movbe",
+         cpu=["MOVBE"],
++        suffix=sfx,
+         opersize=sz,
+         opcode=[0x0F, 0x38, 0xF1],
+         operands=[Operand(type="Mem", size=sz, relaxed=True, dest="EA"),
+-- 
+2.49.0
+

@@ -1,0 +1,27 @@
+From 6143552f926a6fd839462a310a4c04e29c9875cf Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Tue, 7 Mar 2017 20:31:18 +0000
+Subject: [PATCH 23/79] add missing VC++ header
+
+---
+ Mkfiles/vc14/libyasm-stdint.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 Mkfiles/vc14/libyasm-stdint.h
+
+diff --git a/Mkfiles/vc14/libyasm-stdint.h b/Mkfiles/vc14/libyasm-stdint.h
+new file mode 100644
+index 00000000..b66ab15f
+--- /dev/null
++++ b/Mkfiles/vc14/libyasm-stdint.h
+@@ -0,0 +1,8 @@
++#ifndef _UINTPTR_T_DEFINED
++#ifdef _WIN64
++#include <vadefs.h>
++#else
++typedef unsigned long uintptr_t;
++#endif
++#define _UINTPTR_T_DEFINED
++#endif
+-- 
+2.49.0
+

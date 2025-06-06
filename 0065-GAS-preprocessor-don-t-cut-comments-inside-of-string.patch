@@ -1,0 +1,59 @@
+From 811f24d0bfa234bd226301edb6f789320b6f8b5a Mon Sep 17 00:00:00 2001
+From: Ulya Trofimovich <skvadrik@gmail.com>
+Date: Sat, 13 May 2023 05:23:13 +0100
+Subject: [PATCH 65/79] GAS preprocessor: don't cut comments inside of string
+ literals. (#81)
+
+---
+ modules/preprocs/gas/gas-preproc.c | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/modules/preprocs/gas/gas-preproc.c b/modules/preprocs/gas/gas-preproc.c
+index 61941bf9..0dd0531c 100644
+--- a/modules/preprocs/gas/gas-preproc.c
++++ b/modules/preprocs/gas/gas-preproc.c
+@@ -1049,6 +1049,32 @@ typedef int (*pp_fn2_t)(yasm_preproc_gas *pp, int param, const char *arg1, const
+ 
+ #define FN(f) ((pp_fn0_t) &(f))
+ 
++static char *find_str_bound(char *line)
++{
++    for (; line[0]; ++line) {
++        if (line[0] == '"') return line;
++        if (line[0] == '\\' && line[1] == '"') ++line;
++    }
++    return NULL;
++}
++
++static char *find_comment(char *line)
++{
++    char *c, *s;
++
++    for (c = line, s = line; (c = strstr(c, "/*")); s = c) {
++        for (;;) {
++            s = find_str_bound(s);
++            if (!s || s > c) return c;
++
++            s = find_str_bound(s + 1);
++            if (!s || s > c) return NULL;
++        }
++    }
++
++    return NULL;
++}
++
+ static void kill_comments(yasm_preproc_gas *pp, char *line)
+ {
+     int next = 2;
+@@ -1064,7 +1090,7 @@ static void kill_comments(yasm_preproc_gas *pp, char *line)
+         cstart = line;
+         next = 0;
+     } else {
+-        cstart = strstr(line, "/*");
++        cstart = find_comment(line);
+         next = 2;
+     }
+ 
+-- 
+2.49.0
+

@@ -1,0 +1,28 @@
+From 0dfac4d4da1bea4b4f8528cf78df954ef0272a43 Mon Sep 17 00:00:00 2001
+From: dataisland <dataisland@outlook.com>
+Date: Fri, 22 Sep 2023 00:04:21 -0500
+Subject: [PATCH 74/79] Fix nullptr deref in yasm_expr__copy_except (#241)
+
+---
+ libyasm/expr.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/libyasm/expr.c b/libyasm/expr.c
+index c2c868ed..2987def7 100644
+--- a/libyasm/expr.c
++++ b/libyasm/expr.c
+@@ -994,7 +994,10 @@ yasm_expr__copy_except(const yasm_expr *e, int except)
+ {
+     yasm_expr *n;
+     int i;
+-    
++
++    if (e == NULL)
++        return NULL;
++
+     n = yasm_xmalloc(sizeof(yasm_expr) +
+                      sizeof(yasm_expr__item)*(e->numterms<2?0:e->numterms-2));
+ 
+-- 
+2.49.0
+

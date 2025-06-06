@@ -1,0 +1,1093 @@
+From bd283fe52305f9afc4fe1f41fb7c06f1634ef4bd Mon Sep 17 00:00:00 2001
+From: Denis Denisov <denji0k@gmail.com>
+Date: Mon, 4 May 2020 09:36:45 +0300
+Subject: [PATCH 38/79] Revert optimizations added in #68 (#146)
+
+---
+ libyasm/coretype.h                            |   1 -
+ libyasm/expr.c                                | 134 +----------
+ libyasm/section.c                             |   7 -
+ libyasm/section.h                             |  10 -
+ libyasm/value.c                               |  11 -
+ modules/objfmts/bin/bin-objfmt.c              | 208 ++----------------
+ .../objfmts/bin/tests/multisect/bin-align.map |   4 -
+ .../bin/tests/multisect/ldlinux-sects.map     |  10 -
+ .../bin/tests/multisect/multisect1.map        |   4 -
+ .../bin/tests/multisect/multisect2.map        |   3 -
+ .../bin/tests/multisect/multisect3.map        |   3 -
+ .../bin/tests/multisect/multisect4.map        |   6 -
+ .../bin/tests/multisect/multisect5.map        |  10 -
+ .../bin/tests/multisect/nomultisect1.map      |   3 -
+ .../bin/tests/multisect/nomultisect2.map      |   3 -
+ 15 files changed, 27 insertions(+), 390 deletions(-)
+
+diff --git a/libyasm/coretype.h b/libyasm/coretype.h
+index c4b82cce..624e3c44 100644
+--- a/libyasm/coretype.h
++++ b/libyasm/coretype.h
+@@ -233,7 +233,6 @@ typedef enum yasm_expr_op {
+     YASM_EXPR_NOR,      /**< Bitwise NOR. */
+     YASM_EXPR_SHL,      /**< Shift left (logical). */
+     YASM_EXPR_SHR,      /**< Shift right (logical). */
+-    YASM_EXPR_LOGIC,    /**< Start of logic operations (not an op). */
+     YASM_EXPR_LOR,      /**< Logical OR. */
+     YASM_EXPR_LAND,     /**< Logical AND. */
+     YASM_EXPR_LNOT,     /**< Logical negation. */
+diff --git a/libyasm/expr.c b/libyasm/expr.c
+index 1aad79df..c2c868ed 100644
+--- a/libyasm/expr.c
++++ b/libyasm/expr.c
+@@ -846,120 +846,6 @@ expr_expand_equ(yasm_expr *e, yasm__exprhead *eh)
+     return e;
+ }
+ 
+-static yasm_expr *
+-expr_simplify_seg(yasm_expr *e)
+-{
+-    yasm_expr *sube, *seg;
+-
+-    if (e->op != YASM_EXPR_SEG && e->op != YASM_EXPR_WRT)
+-        return e;
+-    if (e->terms[0].type != YASM_EXPR_EXPR)
+-        return e;
+-    sube = e->terms[0].data.expn;
+-
+-    seg = yasm_expr_extract_deep_segoff(&sube);
+-    if (!seg)
+-        return e;
+-
+-    if (e->op == YASM_EXPR_SEG) {
+-        e->op = YASM_EXPR_IDENT;
+-        yasm_expr_destroy(sube);
+-        e->terms[0].data.expn = seg;
+-    } else if (e->op == YASM_EXPR_WRT) {
+-        yasm_expr *old_base, *new_base;
+-        yasm_expr *wrt, *off;
+-        unsigned long line = e->line;
+-
+-        off = e;
+-        wrt = yasm_expr_extract_wrt(&off);
+-
+-        assert(wrt != NULL);
+-
+-        old_base = yasm_xmalloc(sizeof(yasm_expr));
+-        old_base->op = YASM_EXPR_MUL;
+-        old_base->line = line;
+-        old_base->numterms = 2;
+-        old_base->terms[0].type = YASM_EXPR_INT;
+-        old_base->terms[0].data.intn = yasm_intnum_create_int(16);
+-        old_base->terms[1].type = YASM_EXPR_EXPR;
+-        old_base->terms[1].data.expn = seg;
+-
+-        new_base = yasm_xmalloc(sizeof(yasm_expr));
+-        new_base->op = YASM_EXPR_MUL;
+-        new_base->line = line;
+-        new_base->numterms = 2;
+-        new_base->terms[0].type = YASM_EXPR_INT;
+-        new_base->terms[0].data.intn = yasm_intnum_create_int(-16);
+-        new_base->terms[1].type = YASM_EXPR_EXPR;
+-        new_base->terms[1].data.expn = wrt;
+-
+-        e = yasm_xmalloc(sizeof(yasm_expr)+sizeof(yasm_expr__item));
+-        e->op = YASM_EXPR_ADD;
+-        e->line = line;
+-        e->numterms = 3;
+-        e->terms[0].type = YASM_EXPR_EXPR;
+-        e->terms[0].data.expn = off;
+-        e->terms[1].type = YASM_EXPR_EXPR;
+-        e->terms[1].data.expn = old_base;
+-        e->terms[2].type = YASM_EXPR_EXPR;
+-        e->terms[2].data.expn = new_base;
+-    }
+-
+-    return e;
+-}
+-
+-static yasm_expr *
+-expr_lift_segoff(yasm_expr *e, int calc_bc_dist)
+-{
+-    yasm_expr *retval = NULL;
+-    int i;
+-    
+-    if (e->op < YASM_EXPR_LOGIC || e->op == YASM_EXPR_SEGOFF) {
+-        i = e->op == YASM_EXPR_SEGOFF ? 1 : 0;
+-        for (; i<e->numterms; i++) {
+-            if (e->terms[i].type == YASM_EXPR_EXPR &&
+-                e->terms[i].data.expn->op == YASM_EXPR_SEGOFF) {
+-                yasm_expr *sub = e->terms[i].data.expn;
+-                e->terms[i] = sub->terms[1];
+-                retval = sub;
+-                retval->op = YASM_EXPR_SEGOFF;
+-                retval->line = e->line;
+-                retval->numterms = 2;
+-                break;
+-            }
+-        }
+-    }
+-
+-    if (retval != NULL && e->op == YASM_EXPR_SEGOFF) {
+-        yasm_intnum *diff;
+-        yasm_expr *helper;
+-        e->op = YASM_EXPR_IDENT;
+-        e->numterms = 1;
+-        retval->op = YASM_EXPR_IDENT;
+-        retval->numterms = 1;
+-        helper = yasm_xmalloc(sizeof(yasm_expr));
+-        helper->op = YASM_EXPR_SUB;
+-        helper->numterms = 2;
+-        helper->terms[0].type = YASM_EXPR_EXPR;
+-        helper->terms[0].data.expn = yasm_expr_copy(e);
+-        helper->terms[1].type = YASM_EXPR_EXPR;
+-        helper->terms[1].data.expn = yasm_expr_copy(retval);
+-        diff = yasm_expr_get_intnum(&helper, calc_bc_dist);
+-        if (diff != NULL && yasm_intnum_is_zero(diff)) {
+-            yasm_expr_destroy(retval);
+-            retval = NULL;
+-        } else {
+-            retval->op = YASM_EXPR_SEGOFF;
+-            retval->numterms = 2;
+-        }
+-        yasm_expr_destroy(helper);
+-        e->op = YASM_EXPR_SEGOFF;
+-        e->numterms = 2;
+-    }
+-
+-    return retval;
+-}
+-
+ static yasm_expr *
+ expr_level_tree(yasm_expr *e, int fold_const, int simplify_ident,
+                 int simplify_reg_mul, int calc_bc_dist,
+@@ -967,10 +853,8 @@ expr_level_tree(yasm_expr *e, int fold_const, int simplify_ident,
+                 void *expr_xform_extra_data)
+ {
+     int i;
+-    yasm_expr *seg;
+ 
+     e = expr_xform_neg(e);
+-    e = expr_simplify_seg(e);
+ 
+     /* traverse terms */
+     for (i=0; i<e->numterms; i++) {
+@@ -982,11 +866,18 @@ expr_level_tree(yasm_expr *e, int fold_const, int simplify_ident,
+                                 expr_xform_extra, expr_xform_extra_data);
+     }
+ 
++    /* Check for SEG of SEG:OFF, if we match, simplify to just the segment */
++    if (e->op == YASM_EXPR_SEG && e->terms[0].type == YASM_EXPR_EXPR &&
++        e->terms[0].data.expn->op == YASM_EXPR_SEGOFF) {
++        e->op = YASM_EXPR_IDENT;
++        e->terms[0].data.expn->op = YASM_EXPR_IDENT;
++        /* Destroy the second (offset) term */
++        e->terms[0].data.expn->numterms = 1;
++        expr_delete_term(&e->terms[0].data.expn->terms[1], 1);
++    }
++
+     /* do callback */
+     e = expr_level_op(e, fold_const, simplify_ident, simplify_reg_mul);
+-    seg = expr_lift_segoff(e, calc_bc_dist);
+-    if (seg)
+-        e = expr_level_op(e, fold_const, simplify_ident, simplify_reg_mul);
+     if (calc_bc_dist || expr_xform_extra) {
+         if (calc_bc_dist)
+             e = expr_xform_bc_dist(e);
+@@ -995,11 +886,6 @@ expr_level_tree(yasm_expr *e, int fold_const, int simplify_ident,
+         e = expr_level_tree(e, fold_const, simplify_ident, simplify_reg_mul,
+                             0, NULL, NULL);
+     }
+-    if (seg) {
+-        seg->terms[1].type = YASM_EXPR_EXPR;
+-        seg->terms[1].data.expn = e;
+-        e = seg;
+-    }
+     return e;
+ }
+ 
+diff --git a/libyasm/section.c b/libyasm/section.c
+index 47e730c3..ba582bfa 100644
+--- a/libyasm/section.c
++++ b/libyasm/section.c
+@@ -241,11 +241,6 @@ yasm_object_create(const char *src_filename, const char *obj_filename,
+     /* Initialize things to NULL in case of error */
+     object->dbgfmt = NULL;
+ 
+-    /* Initialize override structure */
+-    object->overrides = yasm_xmalloc(sizeof(yasm_overrides));
+-
+-    object->overrides->value_finalize = NULL;
+-
+     /* Initialize the object format */
+     object->objfmt = yasm_objfmt_create(objfmt_module, object);
+     if (!object->objfmt) {
+@@ -494,8 +489,6 @@ yasm_object_destroy(yasm_object *object)
+     if (object->arch)
+         yasm_arch_destroy(object->arch);
+ 
+-    yasm_xfree(object->overrides);
+-
+     yasm_xfree(object);
+ }
+ 
+diff --git a/libyasm/section.h b/libyasm/section.h
+index 5bdd4419..2c7faa4d 100644
+--- a/libyasm/section.h
++++ b/libyasm/section.h
+@@ -45,15 +45,6 @@ struct yasm_reloc {
+     /*@dependent@*/ yasm_symrec *sym;       /**< Relocated symbol */
+ };
+ 
+-/** Structure of functions that can be overridden
+- */
+-typedef struct yasm_overrides {
+-    /** TODO: documentation
+-     */
+-    int
+-    (*value_finalize)(yasm_value *value, yasm_bytecode *precbc);
+-} yasm_overrides;
+-
+ /** An object.  This is the internal representation of an object file. */
+ struct yasm_object {
+     /*@owned@*/ char *src_filename;     /**< Source filename */
+@@ -63,7 +54,6 @@ struct yasm_object {
+     /*@owned@*/ yasm_arch *arch;        /**< Target architecture */
+     /*@owned@*/ yasm_objfmt *objfmt;    /**< Object format */
+     /*@owned@*/ yasm_dbgfmt *dbgfmt;    /**< Debug format */
+-    /*@owned@*/ yasm_overrides *overrides; /**< Function overrides */
+ 
+     /** Currently active section.  Used by some directives.  NULL if no
+      * section active.
+diff --git a/libyasm/value.c b/libyasm/value.c
+index 47873cf7..3ab73c1c 100644
+--- a/libyasm/value.c
++++ b/libyasm/value.c
+@@ -459,20 +459,9 @@ yasm_value_finalize_expr(yasm_value *value, yasm_expr *e,
+ int
+ yasm_value_finalize(yasm_value *value, yasm_bytecode *precbc)
+ {
+-    yasm_object *object = NULL;
+     if (!value->abs)
+         return 0;
+ 
+-    if (precbc != NULL)
+-        object = yasm_section_get_object(precbc->section);
+-
+-    if (object && object->overrides->value_finalize) {
+-        int result;
+-        result = object->overrides->value_finalize(value, precbc);
+-        if (result != -1)
+-            return result;
+-    }
+-
+     value->abs = yasm_expr__level_tree(value->abs, 1, 1, 0, 0, NULL, NULL);
+ 
+     /* quit early if there was an issue in simplify() */
+diff --git a/modules/objfmts/bin/bin-objfmt.c b/modules/objfmts/bin/bin-objfmt.c
+index 4a4ce96f..18026750 100644
+--- a/modules/objfmts/bin/bin-objfmt.c
++++ b/modules/objfmts/bin/bin-objfmt.c
+@@ -43,18 +43,12 @@ typedef struct bin_section_data {
+     /* User-provided starts */
+     /*@null@*/ /*@owned@*/ yasm_expr *start, *vstart;
+ 
+-    /* User-provided segments */
+-    /*@null@*/ /*@owned@*/ yasm_expr *vseg;
+-
+     /* User-provided follows */
+     /*@null@*/ /*@owned@*/ char *follows, *vfollows;
+ 
+     /* Calculated (final) starts, used only during output() */
+     /*@null@*/ /*@owned@*/ yasm_intnum *istart, *ivstart;
+ 
+-    /* Calculated (final) starts, used only during output() */
+-    /*@null@*/ /*@owned@*/ yasm_intnum *ivseg;
+-
+     /* Calculated (final) length, used only during output() */
+     /*@null@*/ /*@owned@*/ yasm_intnum *length;
+ } bin_section_data;
+@@ -104,7 +98,6 @@ static const yasm_assoc_data_callback bin_symrec_data_cb = {
+ 
+ yasm_objfmt_module yasm_bin_LTX_objfmt;
+ 
+-static int bin_objfmt_value_finalize(yasm_value *value, yasm_bytecode *precbc);
+ 
+ static yasm_objfmt *
+ bin_objfmt_create(yasm_object *object)
+@@ -116,8 +109,6 @@ bin_objfmt_create(yasm_object *object)
+     objfmt_bin->map_filename = NULL;
+     objfmt_bin->org = NULL;
+ 
+-    object->overrides->value_finalize = bin_objfmt_value_finalize;
+-
+     return (yasm_objfmt *)objfmt_bin;
+ }
+ 
+@@ -296,19 +287,6 @@ bin_lma_create_group(yasm_section *sect, /*@null@*/ void *d)
+     } else
+         bsd->ivstart = NULL;
+ 
+-    /* Calculate section integer vseg. */
+-    if (bsd->vseg) {
+-        bsd->ivseg = yasm_expr_get_intnum(&bsd->vseg, 0);
+-        if (!bsd->ivseg) {
+-            yasm_error_set(YASM_ERROR_TOO_COMPLEX,
+-                           N_("vseg expression is too complex"));
+-            yasm_errwarn_propagate(info->errwarns, bsd->vseg->line);
+-            return 1;
+-        } else
+-            bsd->ivseg = yasm_intnum_copy(bsd->ivseg);
+-    } else
+-        bsd->ivseg = NULL;
+-
+     /* Calculate section integer length. */
+     bsd->length = yasm_calc_bc_dist(yasm_section_bcs_first(sect),
+                                     yasm_section_bcs_last(sect));
+@@ -489,13 +467,11 @@ group_assign_vstart_recurse(bin_group *group, yasm_intnum *start,
+     }
+ }
+ 
+-static /*@null@*/ /*@only@*/ yasm_expr *
+-get_ssym_value(yasm_symrec *sym, unsigned long line)
++static /*@null@*/ const yasm_intnum *
++get_ssym_value(yasm_symrec *sym)
+ {
+     bin_symrec_data *bsymd = yasm_symrec_get_data(sym, &bin_symrec_data_cb);
+     bin_section_data *bsd;
+-    yasm_intnum *offset;
+-    yasm_expr *expr;
+ 
+     if (!bsymd)
+         return NULL;
+@@ -504,26 +480,11 @@ get_ssym_value(yasm_symrec *sym, unsigned long line)
+     assert(bsd != NULL);
+ 
+     switch (bsymd->which) {
+-        case SSYM_START: offset = bsd->istart; break;
+-        case SSYM_VSTART: offset = bsd->ivstart; break;
+-        case SSYM_LENGTH: offset = bsd->length; break;
+-        default: return NULL;
++        case SSYM_START: return bsd->istart;
++        case SSYM_VSTART: return bsd->ivstart;
++        case SSYM_LENGTH: return bsd->length;
+     }
+-
+-    offset = yasm_intnum_copy(offset);
+-
+-    if (bsymd->which == SSYM_VSTART && bsd->ivseg != NULL) {
+-        yasm_intnum *tmp = yasm_intnum_create_int(16);
+-        yasm_intnum_calc(tmp, YASM_EXPR_MUL, bsd->ivseg);
+-        yasm_intnum_calc(offset, YASM_EXPR_SUB, tmp);
+-        yasm_intnum_destroy(tmp);
+-        expr = yasm_expr_create(YASM_EXPR_SEGOFF,
+-                                yasm_expr_int(yasm_intnum_copy(bsd->ivseg)),
+-                                yasm_expr_int(offset), line);
+-    } else
+-        expr = yasm_expr_create_ident(yasm_expr_int(offset), line);
+-
+-    return expr;
++    return NULL;
+ }
+ 
+ static /*@only@*/ yasm_expr *
+@@ -535,7 +496,7 @@ bin_objfmt_expr_xform(/*@returned@*/ /*@only@*/ yasm_expr *e,
+         /*@dependent@*/ yasm_section *sect;
+         /*@dependent@*/ /*@null@*/ yasm_bytecode *precbc;
+         /*@null@*/ yasm_intnum *dist;
+-        /*@null@*/ /*@only@*/ yasm_expr *ssymval;
++        /*@null@*/ const yasm_intnum *ssymval;
+ 
+         /* Transform symrecs or precbcs that reference sections into
+          * vstart + intnum(dist).
+@@ -550,31 +511,15 @@ bin_objfmt_expr_xform(/*@returned@*/ /*@only@*/ yasm_expr *e,
+             bsd = yasm_section_get_data(sect, &bin_section_data_cb);
+             assert(bsd != NULL);
+             yasm_intnum_calc(dist, YASM_EXPR_ADD, bsd->ivstart);
+-            if (bsd->ivseg != NULL) {
+-                yasm_expr *sube;
+-                yasm_intnum *seg;
+-
+-                seg = yasm_intnum_create_int(16);
+-                yasm_intnum_calc(seg, YASM_EXPR_MUL, bsd->ivseg);
+-                yasm_intnum_calc(dist, YASM_EXPR_SUB, seg);
+-                yasm_intnum_set(seg, bsd->ivseg);
+-                
+-                sube = yasm_expr_create(YASM_EXPR_SEGOFF,
+-                                        yasm_expr_int(seg),
+-                                        yasm_expr_int(dist), e->line);
+-                e->terms[i].type = YASM_EXPR_EXPR;
+-                e->terms[i].data.expn = sube;
+-            } else {
+-                e->terms[i].type = YASM_EXPR_INT;
+-                e->terms[i].data.intn = dist;
+-            }
++            e->terms[i].type = YASM_EXPR_INT;
++            e->terms[i].data.intn = dist;
+         }
+ 
+         /* Transform our special symrecs into the appropriate value */
+         if (e->terms[i].type == YASM_EXPR_SYM &&
+-            (ssymval = get_ssym_value(e->terms[i].data.sym, e->line))) {
+-            e->terms[i].type = YASM_EXPR_EXPR;
+-            e->terms[i].data.expn = ssymval;
++            (ssymval = get_ssym_value(e->terms[i].data.sym))) {
++            e->terms[i].type = YASM_EXPR_INT;
++            e->terms[i].data.intn = yasm_intnum_copy(ssymval);
+         }
+     }
+ 
+@@ -584,7 +529,6 @@ bin_objfmt_expr_xform(/*@returned@*/ /*@only@*/ yasm_expr *e,
+ typedef struct map_output_info {
+     /* address width */
+     int bytes;
+-    int vseg_present;
+ 
+     /* intnum output static data areas */
+     unsigned char *buf;
+@@ -613,11 +557,6 @@ map_prescan_bytes(yasm_section *sect, void *d)
+         info->bytes *= 2;
+     while (!yasm_intnum_check_size(bsd->ivstart, info->bytes * 8, 0, 0))
+         info->bytes *= 2;
+-    if (bsd->ivseg) {
+-        info->vseg_present = 1;
+-        while (!yasm_intnum_check_size(bsd->ivseg, info->bytes * 8, 0, 0))
+-            info->bytes *= 2;
+-    }
+ 
+     return 0;
+ }
+@@ -650,16 +589,6 @@ map_sections_summary(bin_groups *groups, map_output_info *info)
+         map_print_intnum(info->intn, info);
+         fprintf(info->f, "  ");
+ 
+-        if (info->vseg_present) {
+-            if (bsd->ivseg == NULL) {
+-                size_t i;
+-                for (i = info->bytes; i != 0; i--)
+-                    fprintf(info->f, "--");
+-            } else
+-                map_print_intnum(bsd->ivseg, info);
+-            fprintf(info->f, "  ");
+-        }
+-
+         map_print_intnum(bsd->istart, info);
+         fprintf(info->f, "  ");
+ 
+@@ -705,11 +634,6 @@ map_sections_detail(bin_groups *groups, map_output_info *info)
+                 bsd->follows ? bsd->follows : "not defined");
+         fprintf(info->f, "\nvstart:    ");
+         map_print_intnum(bsd->ivstart, info);
+-        fprintf(info->f, "\nvseg:      ");
+-        if (bsd->ivseg)
+-            map_print_intnum(bsd->ivseg, info);
+-        else
+-            fprintf(info->f, "not defined");
+         fprintf(info->f, "\nvalign:    ");
+         map_print_intnum(bsd->valign, info);
+         fprintf(info->f, "\nvfollows:  %s\n\n",
+@@ -845,7 +769,6 @@ output_map(bin_objfmt_output_info *info)
+      * fields.  Start with a minimum of 4.
+      */
+     mapinfo.bytes = 4;
+-    mapinfo.vseg_present = 0;
+     while (!yasm_intnum_check_size(info->origin, mapinfo.bytes * 8, 0, 0))
+         mapinfo.bytes *= 2;
+     yasm_object_sections_traverse(info->object, &mapinfo, map_prescan_bytes);
+@@ -868,11 +791,9 @@ output_map(bin_objfmt_output_info *info)
+         fprintf(f, "-- Sections (summary) ");
+         for (i=0; i<57; i++)
+             fputc('-', f);
+-        fprintf(f, "\n\n%-*s%-*s%-*s%-*s%-*s%-*s%-*s%s\n",
++        fprintf(f, "\n\n%-*s%-*s%-*s%-*s%-*s%-*s%s\n",
+                 mapinfo.bytes*2+2, "Vstart",
+                 mapinfo.bytes*2+2, "Vstop",
+-                mapinfo.vseg_present ? mapinfo.bytes*2+2 : 0,
+-                mapinfo.vseg_present ? "Vseg" : "",
+                 mapinfo.bytes*2+2, "Start",
+                 mapinfo.bytes*2+2, "Stop",
+                 mapinfo.bytes*2+2, "Length",
+@@ -971,91 +892,6 @@ check_lma_overlap(yasm_section *sect, /*@null@*/ void *d)
+     return 0;
+ }
+ 
+-static int
+-bin_objfmt_value_finalize(yasm_value *value, yasm_bytecode *precbc)
+-{
+-    value->abs = yasm_expr__level_tree(value->abs, 1, 1, 0, 0, NULL, NULL);
+-    
+-    /* quit early if there was an issue in simplify() */
+-    if (yasm_error_occurred())
+-        return 1;
+-
+-    /* Strip top-level AND masking to an all-1s mask the same size
+-     * of the value size.  This allows forced avoidance of overflow warnings.
+-     */
+-    if (value->abs->op == YASM_EXPR_AND) {
+-        int term;
+-        
+-        /* Calculate 1<<size - 1 value */
+-        yasm_intnum *mask = yasm_intnum_create_uint(1);
+-        yasm_intnum *mask_tmp = yasm_intnum_create_uint(value->size);
+-        yasm_intnum_calc(mask, YASM_EXPR_SHL, mask_tmp);
+-        yasm_intnum_set_uint(mask_tmp, 1);
+-        yasm_intnum_calc(mask, YASM_EXPR_SUB, mask_tmp);
+-        yasm_intnum_destroy(mask_tmp);
+-        
+-        /* Walk terms and delete matching masks */
+-        for (term=value->abs->numterms-1; term>=0; term--) {
+-            if (value->abs->terms[term].type == YASM_EXPR_INT &&
+-                yasm_intnum_compare(value->abs->terms[term].data.intn,
+-                                    mask) == 0) {
+-                /* Delete the intnum */
+-                yasm_intnum_destroy(value->abs->terms[term].data.intn);
+-            
+-            /* Slide everything to its right over by 1 */
+-            if (term != value->abs->numterms-1) /* if it wasn't last.. */
+-                memmove(&value->abs->terms[term],
+-                        &value->abs->terms[term+1],
+-                        (value->abs->numterms-1-term)*
+-                        sizeof(yasm_expr__item));
+-                
+-                /* Update numterms */
+-                value->abs->numterms--;
+-            
+-            /* Indicate warnings have been disabled */
+-            value->no_warn = 1;
+-                                    }
+-        }
+-        if (value->abs->numterms == 1)
+-            value->abs->op = YASM_EXPR_IDENT;
+-        yasm_intnum_destroy(mask);
+-    }
+-
+-    /* Handle trivial (IDENT) cases immediately */
+-    if (value->abs->op == YASM_EXPR_IDENT) {
+-        switch (value->abs->terms[0].type) {
+-            case YASM_EXPR_INT:
+-                if (yasm_intnum_is_zero(value->abs->terms[0].data.intn)) {
+-                    yasm_expr_destroy(value->abs);
+-                    value->abs = NULL;
+-                }
+-                return 0;
+-            case YASM_EXPR_REG:
+-            case YASM_EXPR_FLOAT:
+-                return 0;
+-            case YASM_EXPR_SYM:
+-                value->rel = value->abs->terms[0].data.sym;
+-                yasm_expr_destroy(value->abs);
+-                value->abs = NULL;
+-                return 0;
+-            case YASM_EXPR_EXPR:
+-                /* Bring up lower values. */
+-                while (value->abs->op == YASM_EXPR_IDENT
+-                       && value->abs->terms[0].type == YASM_EXPR_EXPR) {
+-                    yasm_expr *sube = value->abs->terms[0].data.expn;
+-                    yasm_xfree(value->abs);
+-                    value->abs = sube;
+-                }
+-                break;
+-            default:
+-                return 0;
+-        }
+-    }
+-
+-    /* TODO do some more finalization to avoid breaking stuff that depends on it */
+-    return 0;
+-}
+-
+ static int
+ bin_objfmt_output_value(yasm_value *value, unsigned char *buf,
+                         unsigned int destsize,
+@@ -1072,7 +908,7 @@ bin_objfmt_output_value(yasm_value *value, unsigned char *buf,
+     if (value->rel) {
+         unsigned int rshift = (unsigned int)value->rshift;
+         yasm_expr *syme;
+-        /*@null@*/ yasm_expr *ssymval;
++        /*@null@*/ const yasm_intnum *ssymval;
+ 
+         if (yasm_symrec_is_abs(value->rel)) {
+             syme = yasm_expr_create_ident(yasm_expr_int(
+@@ -1080,8 +916,9 @@ bin_objfmt_output_value(yasm_value *value, unsigned char *buf,
+         } else if (yasm_symrec_get_label(value->rel, &precbc)
+                    && (sect = yasm_bc_get_section(precbc))) {
+             syme = yasm_expr_create_ident(yasm_expr_sym(value->rel), bc->line);
+-        } else if ((ssymval = get_ssym_value(value->rel, bc->line))) {
+-            syme = ssymval;
++        } else if ((ssymval = get_ssym_value(value->rel))) {
++            syme = yasm_expr_create_ident(yasm_expr_int(
++                yasm_intnum_copy(ssymval)), bc->line);
+         } else
+             goto done;
+ 
+@@ -1564,7 +1401,6 @@ bin_objfmt_init_new_section(yasm_section *sect, unsigned long line)
+     data->valign = NULL;
+     data->start = NULL;
+     data->vstart = NULL;
+-    data->vseg = NULL;
+     data->follows = NULL;
+     data->vfollows = NULL;
+     data->istart = NULL;
+@@ -1619,7 +1455,6 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         /*@only@*/ /*@null@*/ char *vfollows;
+         /*@only@*/ /*@null@*/ yasm_expr *start;
+         /*@only@*/ /*@null@*/ yasm_expr *vstart;
+-        /*@only@*/ /*@null@*/ yasm_expr *vseg;
+         /*@only@*/ /*@null@*/ yasm_intnum *align;
+         /*@only@*/ /*@null@*/ yasm_intnum *valign;
+         unsigned long bss;
+@@ -1635,8 +1470,6 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+           offsetof(struct bin_section_switch_data, start), 0 },
+         { "vstart", 1, yasm_dir_helper_expr,
+           offsetof(struct bin_section_switch_data, vstart), 0 },
+-        { "vseg", 1, yasm_dir_helper_expr,
+-          offsetof(struct bin_section_switch_data, vseg), 0 },
+         { "align", 1, yasm_dir_helper_intn,
+           offsetof(struct bin_section_switch_data, align), 0 },
+         { "valign", 1, yasm_dir_helper_intn,
+@@ -1670,7 +1503,6 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         data.vfollows = bsd->vfollows;
+         data.start = bsd->start;
+         data.vstart = bsd->vstart;
+-        data.vseg = bsd->vseg;
+         data.align = NULL;
+         data.valign = NULL;
+         data.bss = bsd->bss;
+@@ -1680,7 +1512,6 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         data.vfollows = NULL;
+         data.start = NULL;
+         data.vstart = NULL;
+-        data.vseg = NULL;
+         data.align = NULL;
+         data.valign = NULL;
+         data.bss = strcmp(sectname, ".bss") == 0;
+@@ -1745,7 +1576,6 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+     bsd->valign = data.valign;
+     bsd->start = data.start;
+     bsd->vstart = data.vstart;
+-    bsd->vseg = data.vseg;
+     bsd->follows = data.follows;
+     bsd->vfollows = data.vfollows;
+ 
+@@ -1854,8 +1684,6 @@ bin_section_data_destroy(void *data)
+         yasm_expr_destroy(bsd->start);
+     if (bsd->vstart)
+         yasm_expr_destroy(bsd->vstart);
+-    if (bsd->vseg)
+-        yasm_expr_destroy(bsd->vseg);
+     if (bsd->follows)
+         yasm_xfree(bsd->follows);
+     if (bsd->vfollows)
+@@ -1891,8 +1719,6 @@ bin_section_data_print(void *data, FILE *f, int indent_level)
+     yasm_expr_print(bsd->start, f);
+     fprintf(f, "\n%*svstart=", indent_level, "");
+     yasm_expr_print(bsd->vstart, f);
+-    fprintf(f, "\n%*svseg=", indent_level, "");
+-    yasm_expr_print(bsd->vseg, f);
+ 
+     fprintf(f, "\n%*sfollows=", indent_level, "");
+     if (bsd->follows)
+diff --git a/modules/objfmts/bin/tests/multisect/bin-align.map b/modules/objfmts/bin/tests/multisect/bin-align.map
+index 7ea54184..3031bd15 100644
+--- a/modules/objfmts/bin/tests/multisect/bin-align.map
++++ b/modules/objfmts/bin/tests/multisect/bin-align.map
+@@ -26,7 +26,6 @@ start:     00000000
+ align:     00000008
+ follows:   not defined
+ vstart:    00000000
+-vseg:      not defined
+ valign:    00000008
+ vfollows:  not defined
+ 
+@@ -38,7 +37,6 @@ start:     00000010
+ align:     00000008
+ follows:   not defined
+ vstart:    00000010
+-vseg:      not defined
+ valign:    00000008
+ vfollows:  not defined
+ 
+@@ -50,7 +48,6 @@ start:     00000014
+ align:     00000004
+ follows:   not defined
+ vstart:    00000014
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -62,7 +59,6 @@ start:     00000018
+ align:     00000008
+ follows:   not defined
+ vstart:    00000018
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/ldlinux-sects.map b/modules/objfmts/bin/tests/multisect/ldlinux-sects.map
+index 6a7b6a92..03fde845 100644
+--- a/modules/objfmts/bin/tests/multisect/ldlinux-sects.map
++++ b/modules/objfmts/bin/tests/multisect/ldlinux-sects.map
+@@ -32,7 +32,6 @@ start:     00000800
+ align:     00000004
+ follows:   not defined
+ vstart:    00000800
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -44,7 +43,6 @@ start:     00006C00
+ align:     00000010
+ follows:   not defined
+ vstart:    00006C00
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -56,7 +54,6 @@ start:     00007C00
+ align:     00000004
+ follows:   not defined
+ vstart:    00007C00
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -68,7 +65,6 @@ start:     0000A010
+ align:     00000010
+ follows:   not defined
+ vstart:    0000A010
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -80,7 +76,6 @@ start:     0000A5A0
+ align:     00000004
+ follows:   .data
+ vstart:    000048D0
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  .earlybss
+ 
+@@ -92,7 +87,6 @@ start:     0000A840
+ align:     00000004
+ follows:   .bcopy32
+ vstart:    00004B70
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  .bcopy32
+ 
+@@ -104,7 +98,6 @@ start:     0000A863
+ align:     00000001
+ follows:   .config
+ vstart:    0000A863
+-vseg:      not defined
+ valign:    00000001
+ vfollows:  not defined
+ 
+@@ -116,7 +109,6 @@ start:     0000A870
+ align:     00000010
+ follows:   .adv
+ vstart:    0000A870
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -128,7 +120,6 @@ start:     0000E170
+ align:     00000004
+ follows:   not defined
+ vstart:    00004B94
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  .config
+ 
+@@ -140,7 +131,6 @@ start:     0000E170
+ align:     00000004
+ follows:   not defined
+ vstart:    00004BA0
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  .config.end
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect1.map b/modules/objfmts/bin/tests/multisect/multisect1.map
+index a039ea35..0a56e413 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect1.map
++++ b/modules/objfmts/bin/tests/multisect/multisect1.map
+@@ -26,7 +26,6 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -38,7 +37,6 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -50,7 +48,6 @@ start:     00000010
+ align:     00000001
+ follows:   _TEXT
+ vstart:    00000000
+-vseg:      not defined
+ valign:    00000001
+ vfollows:  not defined
+ 
+@@ -62,7 +59,6 @@ start:     00000020
+ align:     00000010
+ follows:   GATESEG
+ vstart:    00000020
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect2.map b/modules/objfmts/bin/tests/multisect/multisect2.map
+index f10bf198..82002edb 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect2.map
++++ b/modules/objfmts/bin/tests/multisect/multisect2.map
+@@ -25,7 +25,6 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -37,7 +36,6 @@ start:     00000130
+ align:     00000004
+ follows:   not defined
+ vstart:    00000130
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -49,7 +47,6 @@ start:     00000144
+ align:     00000004
+ follows:   not defined
+ vstart:    00000144
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect3.map b/modules/objfmts/bin/tests/multisect/multisect3.map
+index 49f4c665..1c67c227 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect3.map
++++ b/modules/objfmts/bin/tests/multisect/multisect3.map
+@@ -25,7 +25,6 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -37,7 +36,6 @@ start:     00000004
+ align:     00000004
+ follows:   .text
+ vstart:    00000004
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -49,7 +47,6 @@ start:     00000008
+ align:     00000004
+ follows:   not defined
+ vstart:    00000008
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect4.map b/modules/objfmts/bin/tests/multisect/multisect4.map
+index c31fdf10..e1940dc6 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect4.map
++++ b/modules/objfmts/bin/tests/multisect/multisect4.map
+@@ -28,7 +28,6 @@ start:     00000800
+ align:     00000004
+ follows:   not defined
+ vstart:    00000800
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -40,7 +39,6 @@ start:     00009000
+ align:     00000004
+ follows:   not defined
+ vstart:    00009000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -52,7 +50,6 @@ start:     00009100
+ align:     00000010
+ follows:   .text
+ vstart:    00009100
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -64,7 +61,6 @@ start:     00009200
+ align:     00000010
+ follows:   .data
+ vstart:    00000900
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  .earlybss
+ 
+@@ -76,7 +72,6 @@ start:     00009300
+ align:     00000010
+ follows:   .bcopy32
+ vstart:    00009300
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -88,7 +83,6 @@ start:     00009400
+ align:     00000100
+ follows:   not defined
+ vstart:    00000A00
+-vseg:      not defined
+ valign:    00000100
+ vfollows:  .bcopy32
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect5.map b/modules/objfmts/bin/tests/multisect/multisect5.map
+index 86676436..4c052be6 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect5.map
++++ b/modules/objfmts/bin/tests/multisect/multisect5.map
+@@ -32,7 +32,6 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -44,7 +43,6 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00002000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -56,7 +54,6 @@ start:     00000200
+ align:     00000004
+ follows:   sect1
+ vstart:    00000200
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -68,7 +65,6 @@ start:     00000300
+ align:     00000004
+ follows:   not defined
+ vstart:    00004000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -80,7 +76,6 @@ start:     00000400
+ align:     00000004
+ follows:   sect3
+ vstart:    00000400
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -92,7 +87,6 @@ start:     00000500
+ align:     00000004
+ follows:   not defined
+ vstart:    00004100
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  sect3
+ 
+@@ -104,7 +98,6 @@ start:     00000600
+ align:     00000004
+ follows:   not defined
+ vstart:    00006000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -116,7 +109,6 @@ start:     00000614
+ align:     00000004
+ follows:   sect6
+ vstart:    00000620
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -128,7 +120,6 @@ start:     00000718
+ align:     00000004
+ follows:   sect7
+ vstart:    00000730
+-vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -140,7 +131,6 @@ start:     00000818
+ align:     00000004
+ follows:   not defined
+ vstart:    00000830
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  sect8
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/nomultisect1.map b/modules/objfmts/bin/tests/multisect/nomultisect1.map
+index fe5981fc..89974207 100644
+--- a/modules/objfmts/bin/tests/multisect/nomultisect1.map
++++ b/modules/objfmts/bin/tests/multisect/nomultisect1.map
+@@ -25,7 +25,6 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000000
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -37,7 +36,6 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -49,7 +47,6 @@ start:     00000200
+ align:     00000004
+ follows:   not defined
+ vstart:    00000200
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/nomultisect2.map b/modules/objfmts/bin/tests/multisect/nomultisect2.map
+index f87f4090..cc6d9c87 100644
+--- a/modules/objfmts/bin/tests/multisect/nomultisect2.map
++++ b/modules/objfmts/bin/tests/multisect/nomultisect2.map
+@@ -25,7 +25,6 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -37,7 +36,6 @@ start:     00000200
+ align:     00000004
+ follows:   not defined
+ vstart:    00000200
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -49,7 +47,6 @@ start:     00000300
+ align:     00000004
+ follows:   not defined
+ vstart:    00000300
+-vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+-- 
+2.49.0
+

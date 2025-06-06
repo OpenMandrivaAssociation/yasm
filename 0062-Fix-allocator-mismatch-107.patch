@@ -1,0 +1,216 @@
+From 8b6c7b237c6c36614ddc6942b9568d1c214d25ef Mon Sep 17 00:00:00 2001
+From: Duncan Ogilvie <mr.exodia.tpodt@gmail.com>
+Date: Sat, 13 May 2023 06:19:37 +0200
+Subject: [PATCH 62/79] Fix allocator mismatch (#107)
+
+---
+ libyasm/bitvect.c               |  4 ++--
+ libyasm/file.c                  |  4 ++--
+ libyasm/tests/bitvect_test.c    |  2 +-
+ libyasm/tests/floatnum_test.c   |  6 +++---
+ modules/preprocs/nasm/nasm-pp.c |  6 +++---
+ tools/genperf/genperf.c         |  4 ++--
+ tools/genperf/perfect.c         | 18 +++++++++---------
+ 7 files changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/libyasm/bitvect.c b/libyasm/bitvect.c
+index dfb08252..b6570ea3 100644
+--- a/libyasm/bitvect.c
++++ b/libyasm/bitvect.c
+@@ -457,7 +457,7 @@ void BitVector_Destroy_List(listptr list, N_int count)      /* free list     */
+         {
+             BitVector_Destroy(*slot++);
+         }
+-        free((voidptr) list);
++        yasm_xfree((voidptr) list);
+     }
+ }
+ 
+@@ -496,7 +496,7 @@ listptr BitVector_Create_List(N_int bits, boolean clear, N_int count)
+ 
+     if (count > 0)
+     {
+-        list = (listptr) malloc(sizeof(wordptr) * count);
++        list = (listptr) yasm_xmalloc(sizeof(wordptr) * count);
+         if (list != NULL)
+         {
+             slot = list;
+diff --git a/libyasm/file.c b/libyasm/file.c
+index fc7dab6c..ea9f603b 100644
+--- a/libyasm/file.c
++++ b/libyasm/file.c
+@@ -473,7 +473,7 @@ yasm__createpath_common(const char *path, int win)
+     size_t len, lth;
+ 
+     lth = len = strlen(path);
+-    ts = tp = (char *) malloc(len + 1);
++    ts = tp = (char *) yasm_xmalloc(len + 1);
+     pe = pp + len;
+     while (pe > pp) {
+         if ((win && *pe == '\\') || *pe == '/')
+@@ -523,7 +523,7 @@ yasm__createpath_common(const char *path, int win)
+         }
+         *tp++ = *pp++;
+     }
+-    free(ts);
++    yasm_xfree(ts);
+     return lth;
+ }
+ 
+diff --git a/libyasm/tests/bitvect_test.c b/libyasm/tests/bitvect_test.c
+index f7b34130..367b12bc 100644
+--- a/libyasm/tests/bitvect_test.c
++++ b/libyasm/tests/bitvect_test.c
+@@ -109,7 +109,7 @@ num_check(Val *val)
+         strcat(result_msg, ": ");
+         strcat(result_msg, (char *)ascii);
+     }
+-    free(result);
++    yasm_xfree(result);
+     
+     return ret;
+ }
+diff --git a/libyasm/tests/floatnum_test.c b/libyasm/tests/floatnum_test.c
+index 30b8d6ce..2447e90b 100644
+--- a/libyasm/tests/floatnum_test.c
++++ b/libyasm/tests/floatnum_test.c
+@@ -177,7 +177,7 @@ new_check_flt(Init_Entry *val)
+     for (i=1;i<MANT_BYTES;i++)      /* don't compare first byte */
+         if (mantissa[i] != val->mantissa[i])
+             result = 1;
+-    free(mantissa);
++    yasm_xfree(mantissa);
+     if (result) {
+         strcat(result_msg, "mantissa");
+         return 1;
+@@ -231,7 +231,7 @@ test_new_normalized_edgecase(void)
+ static void
+ get_family_setup(void)
+ {
+-    flt = malloc(sizeof(yasm_floatnum));
++    flt = yasm_xmalloc(sizeof(yasm_floatnum));
+     flt->mantissa = BitVector_Create(MANT_BITS, TRUE);
+ }
+ 
+@@ -239,7 +239,7 @@ static void
+ get_family_teardown(void)
+ {
+     BitVector_Destroy(flt->mantissa);
+-    free(flt);
++    yasm_xfree(flt);
+ }
+ 
+ static void
+diff --git a/modules/preprocs/nasm/nasm-pp.c b/modules/preprocs/nasm/nasm-pp.c
+index 32ebcd00..cdc059d9 100644
+--- a/modules/preprocs/nasm/nasm-pp.c
++++ b/modules/preprocs/nasm/nasm-pp.c
+@@ -705,7 +705,7 @@ check_tasm_directive(char *line)
+             "%%define %s %%1\n";
+         char **data;
+ 
+-        data = malloc(2*sizeof(char*));
++        data = nasm_malloc(2*sizeof(char*));
+         oldline = line;
+         line = nasm_malloc(strlen(irp_format) - 2 + len2 + 1);
+         sprintf(line,irp_format,q);
+@@ -804,7 +804,7 @@ check_tasm_directive(char *line)
+         oldline = line;
+         line = nasm_malloc(5 + 1 + len + 1);
+         sprintf(line, "struc %s", p);
+-        struc = malloc(sizeof(*struc));
++        struc = nasm_malloc(sizeof(*struc));
+         struc->name = nasm_strdup(p);
+         struc->fields = NULL;
+         struc->lastField = NULL;
+@@ -1079,7 +1079,7 @@ prepreproc(char *line)
+         d = strchr(c+1, '\n');
+         if (d)
+             *d = '\0';
+-        l = malloc(sizeof(*l));
++        l = nasm_malloc(sizeof(*l));
+         l -> first = tokenise(c+1);
+         l -> finishes = NULL;
+         l -> next = *lp;
+diff --git a/tools/genperf/genperf.c b/tools/genperf/genperf.c
+index c3cfa766..073b7502 100644
+--- a/tools/genperf/genperf.c
++++ b/tools/genperf/genperf.c
+@@ -242,8 +242,8 @@ perfect_gen(FILE *out, const char *lookup_function_name,
+     fprintf(out, "}\n");
+     fprintf(out, "\n");
+ 
+-    free(tab);
+-    free(tabh);
++    yasm_xfree(tab);
++    yasm_xfree(tabh);
+ }
+ 
+ int
+diff --git a/tools/genperf/perfect.c b/tools/genperf/perfect.c
+index a9a14c02..fa5a4897 100644
+--- a/tools/genperf/perfect.c
++++ b/tools/genperf/perfect.c
+@@ -635,7 +635,7 @@ static void hash_ab(
+     else
+     {
+       /* try with 2*smax */
+-      free((void *)tabh);
++      yasm_xfree((void *)tabh);
+       *smax = *smax * 2;
+       scrambleinit(scramble, *smax);
+       tabh = (hstuff *)yasm_xmalloc(sizeof(hstuff)*(form->perfect == MINIMAL_HP ?
+@@ -671,8 +671,8 @@ static void hash_ab(
+     sprintf(final->line[0], "  unsigned long rsl = (a ^ scramble[tab[b]]);\n");
+   }
+ 
+-  free((void *)tabq);
+-  free((void *)tabh);
++  yasm_xfree((void *)tabq);
++  yasm_xfree((void *)tabh);
+ }
+ 
+ 
+@@ -883,8 +883,8 @@ void findhash(
+         else if (*blen < *smax)
+         {
+           *blen *= 2;
+-          free(tabq);
+-          free(*tabb);
++          yasm_xfree(tabq);
++          yasm_xfree(*tabb);
+           *tabb  = (bstuff *)yasm_xmalloc((size_t)(sizeof(bstuff)*(*blen)));
+           tabq  = (qstuff *)yasm_xmalloc((size_t)(sizeof(qstuff)*(*blen+1)));
+         }
+@@ -909,8 +909,8 @@ void findhash(
+         if (*blen < *smax)
+         {
+           *blen *= 2;
+-          free(*tabb);
+-          free(tabq);
++          yasm_xfree(*tabb);
++          yasm_xfree(tabq);
+           *tabb  = (bstuff *)yasm_xmalloc((size_t)(sizeof(bstuff)*(*blen)));
+           tabq  = (qstuff *)yasm_xmalloc((size_t)(sizeof(qstuff)*(*blen+1)));
+           --trysalt;               /* we know this salt got distinct (A,B) */
+@@ -930,7 +930,7 @@ void findhash(
+   }
+ 
+   /* free working memory */
+-  free((void *)tabq);
++  yasm_xfree((void *)tabq);
+ }
+ 
+ #if 0
+@@ -1149,7 +1149,7 @@ hashform *form;                                           /* user directives */
+   /* clean up memory sources */
+   refree(textroot);
+   refree(keyroot);
+-  free((void *)tab);
++  yasm_xfree((void *)tab);
+ }
+ 
+ 
+-- 
+2.49.0
+

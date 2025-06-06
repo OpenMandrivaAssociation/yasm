@@ -1,0 +1,92 @@
+From 4808260d62ab0a1e2b9b9e7ec99873cdb6e2203c Mon Sep 17 00:00:00 2001
+From: bird2tori <bird-github@anduin.net>
+Date: Sun, 24 Sep 2017 00:08:58 +0200
+Subject: [PATCH 26/79] Leak fixes (#79)
+
+* preproc/nasm: Close the input file; addressed a few memory leaks.
+
+* yasm.c: delete include paths before we exit
+
+* cv-dbgfmt.c: Free cv_filename::filename too.
+---
+ frontends/yasm/yasm.c                | 1 +
+ modules/dbgfmts/codeview/cv-dbgfmt.c | 2 ++
+ modules/preprocs/nasm/nasm-pp.c      | 5 +++++
+ modules/preprocs/nasm/nasm-preproc.c | 3 +++
+ 4 files changed, 11 insertions(+)
+
+diff --git a/frontends/yasm/yasm.c b/frontends/yasm/yasm.c
+index 75d96755..bc6f379a 100644
+--- a/frontends/yasm/yasm.c
++++ b/frontends/yasm/yasm.c
+@@ -580,6 +580,7 @@ do_assemble(void)
+     yasm_linemap_destroy(linemap);
+     yasm_errwarns_destroy(errwarns);
+     cleanup(object);
++    yasm_delete_include_paths();
+     return EXIT_SUCCESS;
+ }
+ 
+diff --git a/modules/dbgfmts/codeview/cv-dbgfmt.c b/modules/dbgfmts/codeview/cv-dbgfmt.c
+index 9b06fe34..e39a725f 100644
+--- a/modules/dbgfmts/codeview/cv-dbgfmt.c
++++ b/modules/dbgfmts/codeview/cv-dbgfmt.c
+@@ -71,6 +71,8 @@ cv_dbgfmt_destroy(/*@only@*/ yasm_dbgfmt *dbgfmt)
+     for (i=0; i<dbgfmt_cv->filenames_size; i++) {
+         if (dbgfmt_cv->filenames[i].pathname)
+             yasm_xfree(dbgfmt_cv->filenames[i].pathname);
++        if (dbgfmt_cv->filenames[i].filename)
++            yasm_xfree(dbgfmt_cv->filenames[i].filename);
+     }
+     yasm_xfree(dbgfmt_cv->filenames);
+     yasm_xfree(dbgfmt);
+diff --git a/modules/preprocs/nasm/nasm-pp.c b/modules/preprocs/nasm/nasm-pp.c
+index 5ea650e3..32ebcd00 100644
+--- a/modules/preprocs/nasm/nasm-pp.c
++++ b/modules/preprocs/nasm/nasm-pp.c
+@@ -2313,6 +2313,9 @@ expand_macros_in_string(char **p)
+     Token *line = tokenise(*p);
+     line = expand_smacro(line);
+     *p = detoken(line, FALSE);
++    do
++        line = delete_Token(line);
++    while (line);
+ }
+ 
+ /**
+@@ -2732,6 +2735,7 @@ do_directive(Token * tline)
+             inc->next = istk;
+             inc->conds = NULL;
+             inc->fp = inc_fopen(p, &newname);
++            nasm_free(p);
+             inc->fname = nasm_src_set_fname(newname);
+             inc->lineno = nasm_src_set_linnum(0);
+             inc->lineinc = 1;
+@@ -5051,6 +5055,7 @@ pp_getline(void)
+                 }
+                 istk = i->next;
+                 list->downlevel(LIST_INCLUDE);
++                nasm_free(i->fname);
+                 nasm_free(i);
+                 if (!istk)
+                     return NULL;
+diff --git a/modules/preprocs/nasm/nasm-preproc.c b/modules/preprocs/nasm/nasm-preproc.c
+index 0b364b1f..96d66dbc 100644
+--- a/modules/preprocs/nasm/nasm-preproc.c
++++ b/modules/preprocs/nasm/nasm-preproc.c
+@@ -173,9 +173,12 @@ nasm_preproc_destroy(yasm_preproc *preproc)
+         yasm_xfree(preproc_nasm->line);
+     if (preproc_nasm->file_name)
+         yasm_xfree(preproc_nasm->file_name);
++    if (preproc_nasm->in)
++        fclose(preproc_nasm->in);
+     yasm_xfree(preproc);
+     if (preproc_deps)
+         yasm_xfree(preproc_deps);
++    yasm_xfree(nasm_src_set_fname(NULL));
+ }
+ 
+ static char *
+-- 
+2.49.0
+

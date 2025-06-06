@@ -1,0 +1,28 @@
+From 32ad9c46cebd5bf07af9c05383d3c16e6cb1f17d Mon Sep 17 00:00:00 2001
+From: Henrik Gramner <henrik@gramner.com>
+Date: Sat, 17 Oct 2015 21:32:34 +0200
+Subject: [PATCH 19/79] Support numbers prefixed with + or - in %ifnum
+
+---
+ modules/preprocs/nasm/nasm-pp.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/modules/preprocs/nasm/nasm-pp.c b/modules/preprocs/nasm/nasm-pp.c
+index 27a8cc6c..5ea650e3 100644
+--- a/modules/preprocs/nasm/nasm-pp.c
++++ b/modules/preprocs/nasm/nasm-pp.c
+@@ -2249,7 +2249,10 @@ if_condition(Token * tline, int i)
+                     case PP_ELIFNUM:
+                     case PP_IFNNUM:
+                     case PP_ELIFNNUM:
+-                        j = (t->type == TOK_NUMBER);
++                        while (tok_is_(t, "+") || tok_is_(t, "-") ||
++                                   tok_type_(t, TOK_WHITESPACE))
++                            t = t->next;
++                        j = (t && t->type == TOK_NUMBER);
+                         break;
+                     case PP_IFSTR:
+                     case PP_ELIFSTR:
+-- 
+2.49.0
+

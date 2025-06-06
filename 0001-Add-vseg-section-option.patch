@@ -1,0 +1,609 @@
+From 90a8e215d62cfb6f71c5daa4ca10447ec5bec496 Mon Sep 17 00:00:00 2001
+From: Jannis Harder <jix@jixco.de>
+Date: Thu, 26 Jul 2012 23:43:37 +0200
+Subject: [PATCH 01/79] Add vseg section option
+
+- Added vseg and ivseg to bin_section_data
+- Parsing of vseg option as expression
+- Conversion to integer ivsg
+- Output of vseg in mapfiles
+---
+ modules/objfmts/bin/bin-objfmt.c              | 56 ++++++++++++++++++-
+ .../objfmts/bin/tests/multisect/bin-align.map |  4 ++
+ .../bin/tests/multisect/ldlinux-sects.map     | 10 ++++
+ .../bin/tests/multisect/multisect1.map        |  4 ++
+ .../bin/tests/multisect/multisect2.map        |  3 +
+ .../bin/tests/multisect/multisect3.map        |  3 +
+ .../bin/tests/multisect/multisect4.map        |  6 ++
+ .../bin/tests/multisect/multisect5.map        | 10 ++++
+ .../bin/tests/multisect/nomultisect1.map      |  3 +
+ .../bin/tests/multisect/nomultisect2.map      |  3 +
+ 10 files changed, 101 insertions(+), 1 deletion(-)
+
+diff --git a/modules/objfmts/bin/bin-objfmt.c b/modules/objfmts/bin/bin-objfmt.c
+index 5f422245..12c2670d 100644
+--- a/modules/objfmts/bin/bin-objfmt.c
++++ b/modules/objfmts/bin/bin-objfmt.c
+@@ -43,12 +43,18 @@ typedef struct bin_section_data {
+     /* User-provided starts */
+     /*@null@*/ /*@owned@*/ yasm_expr *start, *vstart;
+ 
++    /* User-provided segments */
++    /*@null@*/ /*@owned@*/ yasm_expr *vseg;
++
+     /* User-provided follows */
+     /*@null@*/ /*@owned@*/ char *follows, *vfollows;
+ 
+     /* Calculated (final) starts, used only during output() */
+     /*@null@*/ /*@owned@*/ yasm_intnum *istart, *ivstart;
+ 
++    /* Calculated (final) starts, used only during output() */
++    /*@null@*/ /*@owned@*/ yasm_intnum *ivseg;
++
+     /* Calculated (final) length, used only during output() */
+     /*@null@*/ /*@owned@*/ yasm_intnum *length;
+ } bin_section_data;
+@@ -287,6 +293,19 @@ bin_lma_create_group(yasm_section *sect, /*@null@*/ void *d)
+     } else
+         bsd->ivstart = NULL;
+ 
++    /* Calculate section integer vseg. */
++    if (bsd->vseg) {
++        bsd->ivseg = yasm_expr_get_intnum(&bsd->vseg, 0);
++        if (!bsd->ivseg) {
++            yasm_error_set(YASM_ERROR_TOO_COMPLEX,
++                           N_("vseg expression is too complex"));
++            yasm_errwarn_propagate(info->errwarns, bsd->vseg->line);
++            return 1;
++        } else
++            bsd->ivseg = yasm_intnum_copy(bsd->ivseg);
++    } else
++        bsd->ivseg = NULL;
++
+     /* Calculate section integer length. */
+     bsd->length = yasm_calc_bc_dist(yasm_section_bcs_first(sect),
+                                     yasm_section_bcs_last(sect));
+@@ -529,6 +548,7 @@ bin_objfmt_expr_xform(/*@returned@*/ /*@only@*/ yasm_expr *e,
+ typedef struct map_output_info {
+     /* address width */
+     int bytes;
++    int vseg_present;
+ 
+     /* intnum output static data areas */
+     unsigned char *buf;
+@@ -557,6 +577,11 @@ map_prescan_bytes(yasm_section *sect, void *d)
+         info->bytes *= 2;
+     while (!yasm_intnum_check_size(bsd->ivstart, info->bytes * 8, 0, 0))
+         info->bytes *= 2;
++    if (bsd->ivseg) {
++        info->vseg_present = 1;
++        while (!yasm_intnum_check_size(bsd->ivseg, info->bytes * 8, 0, 0))
++            info->bytes *= 2;
++    }
+ 
+     return 0;
+ }
+@@ -589,6 +614,16 @@ map_sections_summary(bin_groups *groups, map_output_info *info)
+         map_print_intnum(info->intn, info);
+         fprintf(info->f, "  ");
+ 
++        if (info->vseg_present) {
++            if (bsd->ivseg == NULL) {
++                size_t i;
++                for (i = info->bytes; i != 0; i--)
++                    fprintf(info->f, "--");
++            } else
++                map_print_intnum(bsd->ivseg, info);
++            fprintf(info->f, "  ");
++        }
++
+         map_print_intnum(bsd->istart, info);
+         fprintf(info->f, "  ");
+ 
+@@ -634,6 +669,11 @@ map_sections_detail(bin_groups *groups, map_output_info *info)
+                 bsd->follows ? bsd->follows : "not defined");
+         fprintf(info->f, "\nvstart:    ");
+         map_print_intnum(bsd->ivstart, info);
++        fprintf(info->f, "\nvseg:      ");
++        if (bsd->ivseg)
++            map_print_intnum(bsd->ivseg, info);
++        else
++            fprintf(info->f, "not defined");
+         fprintf(info->f, "\nvalign:    ");
+         map_print_intnum(bsd->valign, info);
+         fprintf(info->f, "\nvfollows:  %s\n\n",
+@@ -769,6 +809,7 @@ output_map(bin_objfmt_output_info *info)
+      * fields.  Start with a minimum of 4.
+      */
+     mapinfo.bytes = 4;
++    mapinfo.vseg_present = 0;
+     while (!yasm_intnum_check_size(info->origin, mapinfo.bytes * 8, 0, 0))
+         mapinfo.bytes *= 2;
+     yasm_object_sections_traverse(info->object, &mapinfo, map_prescan_bytes);
+@@ -791,9 +832,11 @@ output_map(bin_objfmt_output_info *info)
+         fprintf(f, "-- Sections (summary) ");
+         for (i=0; i<57; i++)
+             fputc('-', f);
+-        fprintf(f, "\n\n%-*s%-*s%-*s%-*s%-*s%-*s%s\n",
++        fprintf(f, "\n\n%-*s%-*s%-*s%-*s%-*s%-*s%-*s%s\n",
+                 mapinfo.bytes*2+2, "Vstart",
+                 mapinfo.bytes*2+2, "Vstop",
++                mapinfo.vseg_present ? mapinfo.bytes*2+2 : 0,
++                mapinfo.vseg_present ? "Vseg" : "",
+                 mapinfo.bytes*2+2, "Start",
+                 mapinfo.bytes*2+2, "Stop",
+                 mapinfo.bytes*2+2, "Length",
+@@ -1401,6 +1444,7 @@ bin_objfmt_init_new_section(yasm_section *sect, unsigned long line)
+     data->valign = NULL;
+     data->start = NULL;
+     data->vstart = NULL;
++    data->vseg = NULL;
+     data->follows = NULL;
+     data->vfollows = NULL;
+     data->istart = NULL;
+@@ -1455,6 +1499,7 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         /*@only@*/ /*@null@*/ char *vfollows;
+         /*@only@*/ /*@null@*/ yasm_expr *start;
+         /*@only@*/ /*@null@*/ yasm_expr *vstart;
++        /*@only@*/ /*@null@*/ yasm_expr *vseg;
+         /*@only@*/ /*@null@*/ yasm_intnum *align;
+         /*@only@*/ /*@null@*/ yasm_intnum *valign;
+         unsigned long bss;
+@@ -1470,6 +1515,8 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+           offsetof(struct bin_section_switch_data, start), 0 },
+         { "vstart", 1, yasm_dir_helper_expr,
+           offsetof(struct bin_section_switch_data, vstart), 0 },
++        { "vseg", 1, yasm_dir_helper_expr,
++          offsetof(struct bin_section_switch_data, vseg), 0 },
+         { "align", 1, yasm_dir_helper_intn,
+           offsetof(struct bin_section_switch_data, align), 0 },
+         { "valign", 1, yasm_dir_helper_intn,
+@@ -1503,6 +1550,7 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         data.vfollows = bsd->vfollows;
+         data.start = bsd->start;
+         data.vstart = bsd->vstart;
++        data.vseg = bsd->vseg;
+         data.align = NULL;
+         data.valign = NULL;
+         data.bss = bsd->bss;
+@@ -1512,6 +1560,7 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+         data.vfollows = NULL;
+         data.start = NULL;
+         data.vstart = NULL;
++        data.vseg = NULL;
+         data.align = NULL;
+         data.valign = NULL;
+         data.bss = strcmp(sectname, ".bss") == 0;
+@@ -1576,6 +1625,7 @@ bin_objfmt_section_switch(yasm_object *object, yasm_valparamhead *valparams,
+     bsd->valign = data.valign;
+     bsd->start = data.start;
+     bsd->vstart = data.vstart;
++    bsd->vseg = data.vseg;
+     bsd->follows = data.follows;
+     bsd->vfollows = data.vfollows;
+ 
+@@ -1684,6 +1734,8 @@ bin_section_data_destroy(void *data)
+         yasm_expr_destroy(bsd->start);
+     if (bsd->vstart)
+         yasm_expr_destroy(bsd->vstart);
++    if (bsd->vseg)
++        yasm_expr_destroy(bsd->vseg);
+     if (bsd->follows)
+         yasm_xfree(bsd->follows);
+     if (bsd->vfollows)
+@@ -1719,6 +1771,8 @@ bin_section_data_print(void *data, FILE *f, int indent_level)
+     yasm_expr_print(bsd->start, f);
+     fprintf(f, "\n%*svstart=", indent_level, "");
+     yasm_expr_print(bsd->vstart, f);
++    fprintf(f, "\n%*svseg=", indent_level, "");
++    yasm_expr_print(bsd->vseg, f);
+ 
+     fprintf(f, "\n%*sfollows=", indent_level, "");
+     if (bsd->follows)
+diff --git a/modules/objfmts/bin/tests/multisect/bin-align.map b/modules/objfmts/bin/tests/multisect/bin-align.map
+index 3031bd15..7ea54184 100644
+--- a/modules/objfmts/bin/tests/multisect/bin-align.map
++++ b/modules/objfmts/bin/tests/multisect/bin-align.map
+@@ -26,6 +26,7 @@ start:     00000000
+ align:     00000008
+ follows:   not defined
+ vstart:    00000000
++vseg:      not defined
+ valign:    00000008
+ vfollows:  not defined
+ 
+@@ -37,6 +38,7 @@ start:     00000010
+ align:     00000008
+ follows:   not defined
+ vstart:    00000010
++vseg:      not defined
+ valign:    00000008
+ vfollows:  not defined
+ 
+@@ -48,6 +50,7 @@ start:     00000014
+ align:     00000004
+ follows:   not defined
+ vstart:    00000014
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -59,6 +62,7 @@ start:     00000018
+ align:     00000008
+ follows:   not defined
+ vstart:    00000018
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/ldlinux-sects.map b/modules/objfmts/bin/tests/multisect/ldlinux-sects.map
+index 03fde845..6a7b6a92 100644
+--- a/modules/objfmts/bin/tests/multisect/ldlinux-sects.map
++++ b/modules/objfmts/bin/tests/multisect/ldlinux-sects.map
+@@ -32,6 +32,7 @@ start:     00000800
+ align:     00000004
+ follows:   not defined
+ vstart:    00000800
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -43,6 +44,7 @@ start:     00006C00
+ align:     00000010
+ follows:   not defined
+ vstart:    00006C00
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -54,6 +56,7 @@ start:     00007C00
+ align:     00000004
+ follows:   not defined
+ vstart:    00007C00
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -65,6 +68,7 @@ start:     0000A010
+ align:     00000010
+ follows:   not defined
+ vstart:    0000A010
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -76,6 +80,7 @@ start:     0000A5A0
+ align:     00000004
+ follows:   .data
+ vstart:    000048D0
++vseg:      not defined
+ valign:    00000010
+ vfollows:  .earlybss
+ 
+@@ -87,6 +92,7 @@ start:     0000A840
+ align:     00000004
+ follows:   .bcopy32
+ vstart:    00004B70
++vseg:      not defined
+ valign:    00000010
+ vfollows:  .bcopy32
+ 
+@@ -98,6 +104,7 @@ start:     0000A863
+ align:     00000001
+ follows:   .config
+ vstart:    0000A863
++vseg:      not defined
+ valign:    00000001
+ vfollows:  not defined
+ 
+@@ -109,6 +116,7 @@ start:     0000A870
+ align:     00000010
+ follows:   .adv
+ vstart:    0000A870
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -120,6 +128,7 @@ start:     0000E170
+ align:     00000004
+ follows:   not defined
+ vstart:    00004B94
++vseg:      not defined
+ valign:    00000004
+ vfollows:  .config
+ 
+@@ -131,6 +140,7 @@ start:     0000E170
+ align:     00000004
+ follows:   not defined
+ vstart:    00004BA0
++vseg:      not defined
+ valign:    00000010
+ vfollows:  .config.end
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect1.map b/modules/objfmts/bin/tests/multisect/multisect1.map
+index 0a56e413..a039ea35 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect1.map
++++ b/modules/objfmts/bin/tests/multisect/multisect1.map
+@@ -26,6 +26,7 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -37,6 +38,7 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -48,6 +50,7 @@ start:     00000010
+ align:     00000001
+ follows:   _TEXT
+ vstart:    00000000
++vseg:      not defined
+ valign:    00000001
+ vfollows:  not defined
+ 
+@@ -59,6 +62,7 @@ start:     00000020
+ align:     00000010
+ follows:   GATESEG
+ vstart:    00000020
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect2.map b/modules/objfmts/bin/tests/multisect/multisect2.map
+index 82002edb..f10bf198 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect2.map
++++ b/modules/objfmts/bin/tests/multisect/multisect2.map
+@@ -25,6 +25,7 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -36,6 +37,7 @@ start:     00000130
+ align:     00000004
+ follows:   not defined
+ vstart:    00000130
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -47,6 +49,7 @@ start:     00000144
+ align:     00000004
+ follows:   not defined
+ vstart:    00000144
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect3.map b/modules/objfmts/bin/tests/multisect/multisect3.map
+index 1c67c227..49f4c665 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect3.map
++++ b/modules/objfmts/bin/tests/multisect/multisect3.map
+@@ -25,6 +25,7 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -36,6 +37,7 @@ start:     00000004
+ align:     00000004
+ follows:   .text
+ vstart:    00000004
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -47,6 +49,7 @@ start:     00000008
+ align:     00000004
+ follows:   not defined
+ vstart:    00000008
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect4.map b/modules/objfmts/bin/tests/multisect/multisect4.map
+index e1940dc6..c31fdf10 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect4.map
++++ b/modules/objfmts/bin/tests/multisect/multisect4.map
+@@ -28,6 +28,7 @@ start:     00000800
+ align:     00000004
+ follows:   not defined
+ vstart:    00000800
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -39,6 +40,7 @@ start:     00009000
+ align:     00000004
+ follows:   not defined
+ vstart:    00009000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -50,6 +52,7 @@ start:     00009100
+ align:     00000010
+ follows:   .text
+ vstart:    00009100
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -61,6 +64,7 @@ start:     00009200
+ align:     00000010
+ follows:   .data
+ vstart:    00000900
++vseg:      not defined
+ valign:    00000010
+ vfollows:  .earlybss
+ 
+@@ -72,6 +76,7 @@ start:     00009300
+ align:     00000010
+ follows:   .bcopy32
+ vstart:    00009300
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -83,6 +88,7 @@ start:     00009400
+ align:     00000100
+ follows:   not defined
+ vstart:    00000A00
++vseg:      not defined
+ valign:    00000100
+ vfollows:  .bcopy32
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/multisect5.map b/modules/objfmts/bin/tests/multisect/multisect5.map
+index 4c052be6..86676436 100644
+--- a/modules/objfmts/bin/tests/multisect/multisect5.map
++++ b/modules/objfmts/bin/tests/multisect/multisect5.map
+@@ -32,6 +32,7 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -43,6 +44,7 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00002000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -54,6 +56,7 @@ start:     00000200
+ align:     00000004
+ follows:   sect1
+ vstart:    00000200
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -65,6 +68,7 @@ start:     00000300
+ align:     00000004
+ follows:   not defined
+ vstart:    00004000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -76,6 +80,7 @@ start:     00000400
+ align:     00000004
+ follows:   sect3
+ vstart:    00000400
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -87,6 +92,7 @@ start:     00000500
+ align:     00000004
+ follows:   not defined
+ vstart:    00004100
++vseg:      not defined
+ valign:    00000004
+ vfollows:  sect3
+ 
+@@ -98,6 +104,7 @@ start:     00000600
+ align:     00000004
+ follows:   not defined
+ vstart:    00006000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -109,6 +116,7 @@ start:     00000614
+ align:     00000004
+ follows:   sect6
+ vstart:    00000620
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -120,6 +128,7 @@ start:     00000718
+ align:     00000004
+ follows:   sect7
+ vstart:    00000730
++vseg:      not defined
+ valign:    00000010
+ vfollows:  not defined
+ 
+@@ -131,6 +140,7 @@ start:     00000818
+ align:     00000004
+ follows:   not defined
+ vstart:    00000830
++vseg:      not defined
+ valign:    00000004
+ vfollows:  sect8
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/nomultisect1.map b/modules/objfmts/bin/tests/multisect/nomultisect1.map
+index 89974207..fe5981fc 100644
+--- a/modules/objfmts/bin/tests/multisect/nomultisect1.map
++++ b/modules/objfmts/bin/tests/multisect/nomultisect1.map
+@@ -25,6 +25,7 @@ start:     00000000
+ align:     00000004
+ follows:   not defined
+ vstart:    00000000
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -36,6 +37,7 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -47,6 +49,7 @@ start:     00000200
+ align:     00000004
+ follows:   not defined
+ vstart:    00000200
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+diff --git a/modules/objfmts/bin/tests/multisect/nomultisect2.map b/modules/objfmts/bin/tests/multisect/nomultisect2.map
+index cc6d9c87..f87f4090 100644
+--- a/modules/objfmts/bin/tests/multisect/nomultisect2.map
++++ b/modules/objfmts/bin/tests/multisect/nomultisect2.map
+@@ -25,6 +25,7 @@ start:     00000100
+ align:     00000004
+ follows:   not defined
+ vstart:    00000100
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -36,6 +37,7 @@ start:     00000200
+ align:     00000004
+ follows:   not defined
+ vstart:    00000200
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+@@ -47,6 +49,7 @@ start:     00000300
+ align:     00000004
+ follows:   not defined
+ vstart:    00000300
++vseg:      not defined
+ valign:    00000004
+ vfollows:  not defined
+ 
+-- 
+2.49.0
+

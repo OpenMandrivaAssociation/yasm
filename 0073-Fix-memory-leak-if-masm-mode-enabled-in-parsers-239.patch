@@ -1,0 +1,24 @@
+From 721134a8aee87a94f19b53c6dc43a956427973a0 Mon Sep 17 00:00:00 2001
+From: Andrei Karas <akaras@inbox.ru>
+Date: Fri, 22 Sep 2023 08:04:09 +0300
+Subject: [PATCH 73/79] Fix memory leak if masm mode enabled in parsers (#239)
+
+---
+ modules/parsers/nasm/nasm-parse.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/modules/parsers/nasm/nasm-parse.c b/modules/parsers/nasm/nasm-parse.c
+index 44d3b5d7..680aa0e7 100644
+--- a/modules/parsers/nasm/nasm-parse.c
++++ b/modules/parsers/nasm/nasm-parse.c
+@@ -966,6 +966,7 @@ parse_operand(yasm_parser_nasm *parser_nasm)
+             unsigned int size = SIZE_OVERRIDE_val;
+             get_next_token();
+             if (parser_nasm->masm && curtok == ID && !yasm__strcasecmp(ID_val, "ptr")) {
++                destroy_curtok();
+                 get_next_token();
+             }
+             op = parse_operand(parser_nasm);
+-- 
+2.49.0
+

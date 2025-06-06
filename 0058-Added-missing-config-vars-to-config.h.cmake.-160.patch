@@ -1,0 +1,54 @@
+From 468014643d7a7c481ff67b9c87364d16eedc317a Mon Sep 17 00:00:00 2001
+From: James Touton <bekenn@gmail.com>
+Date: Fri, 12 May 2023 21:16:49 -0700
+Subject: [PATCH 58/79] Added missing config vars to config.h.cmake. (#160)
+
+---
+ ConfigureChecks.cmake | 1 +
+ config.h.cmake        | 7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/ConfigureChecks.cmake b/ConfigureChecks.cmake
+index 4b05d048..73a1a4c2 100644
+--- a/ConfigureChecks.cmake
++++ b/ConfigureChecks.cmake
+@@ -18,6 +18,7 @@ CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+ CHECK_SYMBOL_EXISTS(abort "stdlib.h" HAVE_ABORT)
+ 
+ CHECK_FUNCTION_EXISTS(getcwd HAVE_GETCWD)
++CHECK_FUNCTION_EXISTS(_stricmp HAVE__STRICMP)
+ CHECK_FUNCTION_EXISTS(toascii HAVE_TOASCII)
+ 
+ CHECK_LIBRARY_EXISTS(dl dlopen "" HAVE_LIBDL)
+diff --git a/config.h.cmake b/config.h.cmake
+index e0026778..61e99d00 100644
+--- a/config.h.cmake
++++ b/config.h.cmake
+@@ -8,6 +8,9 @@
+ /* Define if messsage translations are enabled */
+ #cmakedefine ENABLE_NLS 1
+ 
++/* Define if you have the `abort' function. */
++#cmakedefine HAVE_ABORT 1
++
+ /* */
+ #undef HAVE_GETTEXT
+ 
+@@ -23,6 +26,9 @@
+ /* Define to 1 if you have the `getcwd' function. */
+ #cmakedefine HAVE_GETCWD 1
+ 
++/* Define to 1 if you have the `_stricmp' function. */
++#cmakedefine HAVE__STRICMP 1
++
+ /* Define to 1 if you have the `toascii' function. */
+ #cmakedefine HAVE_TOASCII 1
+ 
+@@ -45,4 +51,3 @@
+ 
+ /* Command name to run C preprocessor */
+ #define CPP_PROG "@CPP_PROG@"
+-
+-- 
+2.49.0
+

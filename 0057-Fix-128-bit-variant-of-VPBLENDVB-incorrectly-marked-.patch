@@ -1,0 +1,26 @@
+From 3bbfd9d8f94e3a0a083b6cd18da6de87f586a7a3 Mon Sep 17 00:00:00 2001
+From: squidcc <adunstan@corecodec.com>
+Date: Sat, 13 May 2023 14:16:26 +1000
+Subject: [PATCH 57/79] Fix 128-bit variant of VPBLENDVB incorrectly marked as
+ AVX2 instead of AVX (#112)
+
+---
+ modules/arch/x86/gen_x86_insn.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/arch/x86/gen_x86_insn.py b/modules/arch/x86/gen_x86_insn.py
+index b21c74a2..09d64c7f 100755
+--- a/modules/arch/x86/gen_x86_insn.py
++++ b/modules/arch/x86/gen_x86_insn.py
+@@ -5976,7 +5976,7 @@ add_insn("vblendvps", "avx_sse4xmm0", modifiers=[0x4A])
+ 
+ # vpblendvb didn't have a 256-bit form until AVX2
+ add_group("avx2_sse4xmm0",
+-    cpu=["AVX2"],
++    cpu=["AVX"],
+     modifiers=["Op2Add"],
+     vex=128,
+     prefix=0x66,
+-- 
+2.49.0
+

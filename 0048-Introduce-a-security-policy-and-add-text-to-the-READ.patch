@@ -1,0 +1,67 @@
+From 05a52bab7511a834fd197b76c3ffbee744401e78 Mon Sep 17 00:00:00 2001
+From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Date: Sat, 13 May 2023 00:06:18 -0400
+Subject: [PATCH 48/79] Introduce a security policy and add text to the README
+ (#223)
+
+Add a SECURITY.md that disclaims almost all bugs as security issues.
+---
+ README      | 13 +++++++++++++
+ SECURITY.md | 27 +++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
+ create mode 100644 SECURITY.md
+
+diff --git a/README b/README
+index e69de29b..6d529727 100644
+--- a/README
++++ b/README
+@@ -0,0 +1,13 @@
++The Yasm Modular Assembler Project
++==================================
++
++Yasm is a complete rewrite of the NASM assembler under the “new” BSD License
++(some portions are under other licenses, see COPYING for details).
++
++Yasm currently supports the x86 and AMD64 instruction sets, accepts NASM and
++GAS assembler syntaxes, outputs binary, ELF32, ELF64, 32 and 64-bit Mach-O,
++RDOFF2, COFF, Win32, and Win64 object formats, and generates source debugging
++information in STABS, DWARF 2, and CodeView 8 formats.
++
++Yasm can be easily integrated into Visual Studio 2005/2008 and 2010 for
++assembly of NASM or GAS syntax code into Win32 or Win64 object files.
+diff --git a/SECURITY.md b/SECURITY.md
+new file mode 100644
+index 00000000..d205e244
+--- /dev/null
++++ b/SECURITY.md
+@@ -0,0 +1,27 @@
++Yasm Security policy
++====================
++
++A security bug is one that compromises the security of a system by either
++making it unavailable, compromising the integrity of the data or by providing
++unauthorized access to resources on the system through untrusted inputs.  In
++the context of yasm, it is expected that all inputs are trusted, since it is
++developer code.  It is the responsibility of the developer to either verify the
++authenticity of the code they're building or to build untrusted code in a
++sandbox to protect the system from any ill effects.  This responsibility also
++extends to the libyasm library.  While the library aims to be robust and will
++fix bugs arising from bogus inputs, it is the responsibility of the application
++to ensure that either the environment under which the call is made is isolated
++or that the input is sanitized.
++
++As such, all bugs will be deemed to have no security consequence with the
++exception of bugs where yasm generates code that invoke [undefined behaviour in
++a
++system](https://www.cs.cmu.edu/~rdriley/487/papers/Thompson_1984_ReflectionsonTrustingTrust.pdf)
++from valid, safe and trusted assembly code.
++
++Reporting security bugs
++-----------------------
++
++To report security issues privately, you may reach out to one of the members of
++the [Yasm Team](https://github.com/yasm/yasm/wiki/Yasmteam).  Most issues
++should just go into GitHub issues as regular bugs.
+-- 
+2.49.0
+

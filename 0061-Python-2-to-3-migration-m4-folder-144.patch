@@ -1,0 +1,133 @@
+From e9badc5a77813003baae4e73d4bfd0298069459f Mon Sep 17 00:00:00 2001
+From: Scott Furry <scottfurry@users.noreply.github.com>
+Date: Fri, 12 May 2023 22:18:39 -0600
+Subject: [PATCH 61/79] Python 2 to 3 migration - m4 folder (#144)
+
+Update cython.m4 and pythonhead.m4 files to be compatible with py2/3
+
+pythonhead.m4 changes taken from:
+  https://raw.githubusercontent.com/posborne/dbus-python/master/m4/am-check-python-headers.m4
+
+cython.m4 changes taken from:
+  https://raw.githubusercontent.com/alisw/rivet/master/m4/cython.m4
+---
+ m4/cython.m4     | 55 ++++++++++++++++++++++++++++++------------------
+ m4/pythonhead.m4 | 37 ++++++++++++++++++++++++++------
+ 2 files changed, 64 insertions(+), 28 deletions(-)
+
+diff --git a/m4/cython.m4 b/m4/cython.m4
+index e56bfba0..a7ed9ee1 100644
+--- a/m4/cython.m4
++++ b/m4/cython.m4
+@@ -1,23 +1,36 @@
+-dnl a macro to check for the installed Cython version; note PYTHON needs to
+-dnl be set before this function is called.
+-dnl  CYTHON_CHECK_VERSION([MIN-VERSION], [ACTION-IF-TRUE], [ACTION-IF-FALSE])
++dnl a macro to check for the installed Cython version
++dnl  CYTHON_CHECK_VERSION([VERSION [,[ACTION-IF-TRUE [,ACTION-IF-FALSE]]])
++dnl Check if a Cython version is installed
++dnl Defines CYTHON_VERSION and CYTHON_FOUND
++dnl taken from Enligntenment Foundation Libraries(GPL).
+ AC_DEFUN([CYTHON_CHECK_VERSION],
+- [prog="import re, sys
+-from Cython.Compiler.Version import version
+-def get_int(arg):
+-    matched = re.match(r'\d+', arg)
+-    if matched is None:
+-        return 0
+-    else:
+-        return int(matched.group(0))
+-# split strings by '.' and convert to numeric.  Append some zeros
+-# because we need at least 4 digits for the hex conversion.
+-ver = map(get_int, version.rstrip('abcdefghijklmnopqrstuvwxyz').split('.')) + [[0, 0, 0]]
+-verhex = 0
+-for i in range(0, 4): verhex = (verhex << 8) + ver[[i]]
+-minver = map(get_int, '$1'.split('.')) + [[0, 0, 0]]
+-minverhex = 0
+-for i in range(0, 4): minverhex = (minverhex << 8) + minver[[i]]
+-sys.exit(verhex < minverhex)"
+-  AS_IF([AM_RUN_LOG([$PYTHON -c "$prog"])], [$2], [$3])])
++[
++AC_REQUIRE([AM_PATH_PYTHON])
++ifelse([$1], [], [_msg=""], [_msg=" >= $1"])
++AC_MSG_CHECKING(for Cython$_msg)
++AC_CACHE_VAL(py_cv_cython, [
+ 
++prog="from __future__ import print_function; import Cython.Compiler.Version; print(Cython.Compiler.Version.version)"
++CYTHON_VERSION=`$PYTHON -c "$prog" 2>&AC_FD_CC`
++
++py_cv_cython=no
++if test "x$CYTHON_VERSION" != "x"; then
++   py_cv_cython=yes
++fi
++
++if test "x$py_cv_cython" = "xyes"; then
++   ifelse([$1], [], [:],
++      [AS_VERSION_COMPARE([$CYTHON_VERSION], [$1], [py_cv_cython=no])])
++fi
++])
++
++AC_MSG_RESULT([$py_cv_cython])
++
++if test "x$py_cv_cython" = "xyes"; then
++   CYTHON_FOUND=yes
++   ifelse([$2], [], [:], [$2])
++else
++   CYTHON_FOUND=no
++   ifelse([$3], [], [AC_MSG_ERROR([Could not find usable Cython$_msg])], [$3])
++fi
++])
+diff --git a/m4/pythonhead.m4 b/m4/pythonhead.m4
+index 1e0f2b63..15b7a333 100644
+--- a/m4/pythonhead.m4
++++ b/m4/pythonhead.m4
+@@ -1,16 +1,39 @@
+ dnl a macro to check for ability to create python extensions
+ dnl  AM_CHECK_PYTHON_HEADERS([ACTION-IF-POSSIBLE], [ACTION-IF-NOT-POSSIBLE])
+ dnl function also defines PYTHON_INCLUDES
++dnl update taken from dbus-python(GPL).
+ AC_DEFUN([AM_CHECK_PYTHON_HEADERS],
+ [AC_REQUIRE([AM_PATH_PYTHON])
+-AC_MSG_CHECKING(for headers required to compile python extensions)
+-dnl deduce PYTHON_INCLUDES
+-py_prefix=`$PYTHON -c "import sys; print sys.prefix"`
+-py_exec_prefix=`$PYTHON -c "import sys; print sys.exec_prefix"`
+-PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
+-if test "$py_prefix" != "$py_exec_prefix"; then
+-  PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
++
++AC_PATH_PROGS([PYTHON_CONFIG], [python${PYTHON_VERSION}-config python-config], [no])
++if test "${PYTHON_CONFIG}" = "no"; then
++  AC_MSG_ERROR([cannot find python${PYTHON_VERSION}-config or python-config in PATH])
+ fi
++
++AC_ARG_VAR([PYTHON_INCLUDES], [CPPFLAGS for Python, overriding output of python2.x-config --includes, e.g. "-I/opt/misc/include/python2.7"])
++
++if test "${PYTHON_INCLUDES+set}" = set; then
++  AC_MSG_NOTICE([PYTHON_INCLUDES overridden to: $PYTHON_INCLUDES])
++else
++  dnl deduce PYTHON_INCLUDES
++  AC_MSG_CHECKING(for Python headers using $PYTHON_CONFIG --includes)
++  PYTHON_INCLUDES=`$PYTHON_CONFIG --includes`
++  if test $? = 0; then
++    AC_MSG_RESULT($PYTHON_INCLUDES)
++  else
++    AC_MSG_RESULT([failed, will try another way])
++    py_prefix=`$PYTHON -c "import sys; print(sys.prefix)"`
++    py_exec_prefix=`$PYTHON -c "import sys; print(sys.exec_prefix)"`
++    AC_MSG_CHECKING(for Python headers in $py_prefix and $py_exec_prefix)
++    PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
++    if test "$py_prefix" != "$py_exec_prefix"; then
++      PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
++    fi
++    AC_MSG_RESULT($PYTHON_INCLUDES)
++  fi
++fi
++
++AC_MSG_CHECKING(whether those headers are sufficient)
+ AC_SUBST(PYTHON_INCLUDES)
+ dnl check if the headers exist:
+ save_CPPFLAGS="$CPPFLAGS"
+-- 
+2.49.0
+

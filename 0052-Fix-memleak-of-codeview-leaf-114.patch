@@ -1,0 +1,24 @@
+From 93a960bc7da77eceb868d0dd5886c6fb844daee0 Mon Sep 17 00:00:00 2001
+From: Peter Meerwald-Stadler <pmeerw@pmeerw.net>
+Date: Sat, 13 May 2023 06:10:17 +0200
+Subject: [PATCH 52/79] Fix memleak of codeview leaf (#114)
+
+---
+ modules/dbgfmts/codeview/cv-type.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/modules/dbgfmts/codeview/cv-type.c b/modules/dbgfmts/codeview/cv-type.c
+index 2a52f184..c374c2ba 100644
+--- a/modules/dbgfmts/codeview/cv-type.c
++++ b/modules/dbgfmts/codeview/cv-type.c
+@@ -561,6 +561,7 @@ cv_leaf_destroy(cv_leaf *leaf)
+         }
+         ch++;
+     }
++    yasm_xfree(leaf);
+ }
+ 
+ static unsigned long
+-- 
+2.49.0
+

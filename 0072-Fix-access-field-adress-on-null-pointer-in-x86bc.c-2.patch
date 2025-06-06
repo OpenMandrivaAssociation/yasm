@@ -1,0 +1,28 @@
+From dfc1c9e84142ae84b976dd863a11a9d95528210f Mon Sep 17 00:00:00 2001
+From: Andrei Karas <akaras@inbox.ru>
+Date: Wed, 13 Sep 2023 01:21:23 +0300
+Subject: [PATCH 72/79] Fix access field adress on null pointer in x86bc.c
+ (#238)
+
+---
+ modules/arch/x86/x86bc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/modules/arch/x86/x86bc.c b/modules/arch/x86/x86bc.c
+index a6681552..038d7a3f 100644
+--- a/modules/arch/x86/x86bc.c
++++ b/modules/arch/x86/x86bc.c
+@@ -654,7 +654,9 @@ x86_bc_insn_expand(yasm_bytecode *bc, int span, long old_val, long new_val,
+ {
+     x86_insn *insn = (x86_insn *)bc->contents;
+     x86_effaddr *x86_ea = insn->x86_ea;
+-    yasm_effaddr *ea = &x86_ea->ea;
++    yasm_effaddr *ea = NULL;
++    if (x86_ea != NULL)
++        ea = &x86_ea->ea;
+     yasm_value *imm = insn->imm;
+ 
+     if (ea && span == 1) {
+-- 
+2.49.0
+

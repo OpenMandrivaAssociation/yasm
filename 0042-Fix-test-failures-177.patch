@@ -1,0 +1,22 @@
+From f01afb6b5109bce276211e8d64d7c8bde6b71452 Mon Sep 17 00:00:00 2001
+From: Peter Johnson <johnson.peter@gmail.com>
+Date: Fri, 9 Jul 2021 15:42:53 -0500
+Subject: [PATCH 42/79] Fix test failures (#177)
+
+These were caused by the addition of the segreg-in-64bit warning.
+---
+ modules/arch/x86/tests/x86_test.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/arch/x86/tests/x86_test.sh b/modules/arch/x86/tests/x86_test.sh
+index a4fd2e37..56aa2154 100755
+--- a/modules/arch/x86/tests/x86_test.sh
++++ b/modules/arch/x86/tests/x86_test.sh
+@@ -1,3 +1,3 @@
+ #! /bin/sh
+-${srcdir}/out_test.sh x86_test modules/arch/x86/tests "x86 arch" "-f bin" ""
++${srcdir}/out_test.sh x86_test modules/arch/x86/tests "x86 arch" "-f bin -Wsegreg-in-64bit" ""
+ exit $?
+-- 
+2.49.0
+

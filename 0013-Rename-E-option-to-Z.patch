@@ -1,0 +1,50 @@
+From 85b88de12d227a3e014f3217b845876174579609 Mon Sep 17 00:00:00 2001
+From: Peter Johnson <peter@tortall.net>
+Date: Sun, 5 Oct 2014 10:10:08 -0700
+Subject: [PATCH 13/79] Rename -E option to -Z.
+
+"-E" is too easily typoed for "-e", and is dangerous because it overwrites
+the following filename.  "-E" is retained as a synonym for "-e".
+
+This change also makes yasm command-line consistent with NASM.
+---
+ frontends/vsyasm/vsyasm.c | 2 +-
+ frontends/yasm/yasm.c     | 4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/frontends/vsyasm/vsyasm.c b/frontends/vsyasm/vsyasm.c
+index 1c0c3dfc..a057b6f7 100644
+--- a/frontends/vsyasm/vsyasm.c
++++ b/frontends/vsyasm/vsyasm.c
+@@ -185,7 +185,7 @@ static opt_option options[] =
+       N_("inhibits warning messages"), NULL },
+     { 'W', NULL, 0, opt_warning_handler, 0,
+       N_("enables/disables warning"), NULL },
+-    { 'E', NULL, 1, opt_error_file, 0,
++    { 'Z', NULL, 1, opt_error_file, 0,
+       N_("redirect error messages to file"), N_("file") },
+     { 's', NULL, 0, opt_error_stdout, 0,
+       N_("redirect error messages to stdout"), NULL },
+diff --git a/frontends/yasm/yasm.c b/frontends/yasm/yasm.c
+index 7032e1fb..74c16223 100644
+--- a/frontends/yasm/yasm.c
++++ b/frontends/yasm/yasm.c
+@@ -180,12 +180,14 @@ static opt_option options[] =
+       N_("enables/disables warning"), NULL },
+     { 'M', NULL, 0, opt_makedep_handler, 0,
+       N_("generate Makefile dependencies on stdout"), NULL },
+-    { 'E', NULL, 1, opt_error_file, 0,
++    { 'Z', NULL, 1, opt_error_file, 0,
+       N_("redirect error messages to file"), N_("file") },
+     { 's', NULL, 0, opt_error_stdout, 0,
+       N_("redirect error messages to stdout"), NULL },
+     { 'e', "preproc-only", 0, preproc_only_handler, 0,
+       N_("preprocess only (writes output to stdout by default)"), NULL },
++    { 'E', NULL, 0, preproc_only_handler, 0,
++      N_("preprocess only (writes output to stdout by default)"), NULL },
+     { 'i', NULL, 1, opt_include_option, 0,
+       N_("add include path"), N_("path") },
+     { 'I', NULL, 1, opt_include_option, 0,
+-- 
+2.49.0
+

@@ -1,0 +1,28 @@
+From e69fba2db04078f49043a0509815424efed2227e Mon Sep 17 00:00:00 2001
+From: Biswapriyo Nath <nathbappai@gmail.com>
+Date: Sun, 14 May 2023 23:33:04 +0530
+Subject: [PATCH 66/79] Fix missing yasm_xfree function declaration (#224)
+
+This fixes the following compiler error in macOS in CI.
+
+libyasm/tests/bitvect_test.c:112:5: error: implicit declaration of
+function 'yasm_xfree' [-Werror,-Wimplicit-function-declaration]
+---
+ libyasm/tests/bitvect_test.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/libyasm/tests/bitvect_test.c b/libyasm/tests/bitvect_test.c
+index 367b12bc..b60b7ede 100644
+--- a/libyasm/tests/bitvect_test.c
++++ b/libyasm/tests/bitvect_test.c
+@@ -27,6 +27,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++#include "util.h"
+ #include "libyasm/bitvect.h"
+ 
+ static int
+-- 
+2.49.0
+

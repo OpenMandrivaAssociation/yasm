@@ -1,0 +1,28 @@
+From a1aa3adc2ca465e23bd628830243264eb8354d0e Mon Sep 17 00:00:00 2001
+From: Brian Gladman <brg@gladman.plus.com>
+Date: Tue, 4 Dec 2018 21:18:38 +0000
+Subject: [PATCH 34/79] correct bug in VSYASM build integration files
+ (vsyasm.targets)
+
+---
+ Mkfiles/vc15/vsyasm.targets | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Mkfiles/vc15/vsyasm.targets b/Mkfiles/vc15/vsyasm.targets
+index c62d6626..8f38f2cb 100644
+--- a/Mkfiles/vc15/vsyasm.targets
++++ b/Mkfiles/vc15/vsyasm.targets
+@@ -35,8 +35,8 @@
+       <_YASMReadTlog 
+         Include="^%(YASM.FullPath);%(YASM.AdditionalDependencies)"
+         Condition="'%(YASM.ExcludedFromBuild)' != 'true' and '%(YASM.ObjectFile)' != ''"/>
+-      <_YASMWriteTlog
+-        Include="^%(YASM.FullPath);'$(MSBuildProjectDirectory)%(YASM.ObjectFile)'"
++      <_YASMWriteTlog 
++        Include="^%(YASM.FullPath);$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '%(YASM.ObjectFile)'))" 
+         Condition="'%(YASM.ExcludedFromBuild)' != 'true' and '%(YASM.ObjectFile)' != ''"/>
+     </ItemGroup>
+ 
+-- 
+2.49.0
+

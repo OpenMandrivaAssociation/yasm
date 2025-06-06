@@ -1,0 +1,36 @@
+From fa9e004383690ce2a0de70976cc9b9ef58bf2b03 Mon Sep 17 00:00:00 2001
+From: cryptobro <andrey.roussev@gmail.com>
+Date: Sat, 13 May 2023 07:12:54 +0300
+Subject: [PATCH 53/79] gas preproc: Fix UB/crashes (#186)
+
+---
+ modules/preprocs/gas/gas-preproc.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/modules/preprocs/gas/gas-preproc.c b/modules/preprocs/gas/gas-preproc.c
+index 94d8f5da..8f4c7932 100644
+--- a/modules/preprocs/gas/gas-preproc.c
++++ b/modules/preprocs/gas/gas-preproc.c
+@@ -912,6 +912,9 @@ static void expand_macro(yasm_preproc_gas *pp, macro_entry *macro, const char *a
+                         char *end = strstr(macro->params[j], "=");
+                         int len = (end ? (size_t)(end - macro->params[j])
+                                        : strlen(macro->params[j]));
++                        if (!tokval.t_charptr) {
++                            continue;
++                        }
+                         if (!strncmp(tokval.t_charptr, macro->params[j], len)
+                             && tokval.t_charptr[len] == '\0') {
+                             /* now, find matching argument. */
+@@ -932,6 +935,9 @@ static void expand_macro(yasm_preproc_gas *pp, macro_entry *macro, const char *a
+                             memcpy(line + cursor - len, value, value_length);
+                             pp->expr.string = work = line;
+                             pp->expr.string_cursor += delta;
++                            if (pp->expr.symbol == tokval.t_charptr) {
++                                tokval.t_charptr = NULL;
++                            }
+                             if (pp->expr.symbol) {
+                                 yasm_xfree(pp->expr.symbol);
+                                 pp->expr.symbol = NULL;
+-- 
+2.49.0
+

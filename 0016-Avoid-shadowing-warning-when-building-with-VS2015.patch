@@ -1,0 +1,32 @@
+From ac99773493eb399106da99d08bbf46580e4fe80b Mon Sep 17 00:00:00 2001
+From: Scott Graham <scottmg@chromium.org>
+Date: Thu, 19 Feb 2015 17:05:38 -0800
+Subject: [PATCH 16/79] Avoid shadowing warning when building with VS2015
+
+---
+ tools/re2c/code.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tools/re2c/code.c b/tools/re2c/code.c
+index bd54baac..92e24d58 100644
+--- a/tools/re2c/code.c
++++ b/tools/re2c/code.c
+@@ -936,12 +936,12 @@ void DFA_emit(DFA *d, FILE *o){
+ 	oline++;
+ 	useLabel(label);
+     } else {
+-	int i;
++	int j;
+ 	fputs("\tswitch(YYGETSTATE()) {\n", o);
+ 	fputs("\t\tcase -1: goto yy0;\n", o);
+ 
+-	for (i=0; i<maxFillIndexes; ++i)
+-	    fprintf(o, "\t\tcase %u: goto yyFillLabel%u;\n", i, i);
++	for (j=0; j<maxFillIndexes; ++j)
++	    fprintf(o, "\t\tcase %d: goto yyFillLabel%d;\n", j, j);
+ 
+ 	fputs("\t\tdefault: /* abort() */;\n", o);
+ 	fputs("\t}\n", o);
+-- 
+2.49.0
+
