@@ -94,6 +94,11 @@ Source0:	http://www.tortall.net/projects/yasm/releases/%{name}-%{version}.tar.gz
 # Not quite as dead as it appears to be...
 https://github.com/yasm/yasm/pull/287.patch
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 %description
 Yasm is a complete rewrite of the NASM assembler under the "new" BSD
 License (some portions are under other licenses, see COPYING for
